@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA TERMINAL | v13.0 FINAL</title>
+    <title>IA TERMINAL | v15.1 LIVE</title>
     <style>
         :root { --red: #ff0000; --bg: #050505; --panel: rgba(20, 0, 0, 0.94); }
-        body { color: #eee; font-family: 'Courier New', Courier, monospace; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--bg); position: relative; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://r2.erweima.ai/i/1723145415712771509.png'); background-size: cover; background-position: center; opacity: 0.25; z-index: -2; }
+        body { color: #eee; font-family: 'Courier New', Courier, monospace; margin: 0; background-color: var(--bg); display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://r2.erweima.ai/i/1723145415712771509.png'); background-size: cover; background-position: center; opacity: 0.2; z-index: -2; }
         
-        /* شاشة تسجيل الدخول */
-        #login-screen { text-align: center; border: 2px solid var(--red); padding: 40px 20px; background: var(--panel); width: 85%; max-width: 380px; box-shadow: 0 0 25px var(--red); z-index: 10; border-radius: 10px; }
+        #login-screen { align-self: center; text-align: center; border: 2px solid var(--red); padding: 40px 20px; background: var(--panel); width: 85%; max-width: 380px; box-shadow: 0 0 25px var(--red); z-index: 10; border-radius: 10px; }
         #login-screen input { background: black; border: 1px solid var(--red); color: var(--red); padding: 15px; width: 100%; margin-top: 25px; text-align: center; box-sizing: border-box; font-size: 16px; outline: none; }
         #login-screen button { background: var(--red); color: black; border: none; padding: 12px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; }
         
-        /* الواجهة الرئيسية */
-        #main-interface { display: none; width: 100%; max-width: 950px; padding: 20px; box-sizing: border-box; align-self: flex-start; }
+        #main-interface { display: none; width: 100%; max-width: 950px; padding: 20px; box-sizing: border-box; }
         header { border-bottom: 2px solid var(--red); padding: 15px; text-align: center; margin-bottom: 25px; background: rgba(0,0,0,0.7); }
         
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
@@ -23,11 +21,10 @@
         .category-box:hover { background: var(--red); color: black; box-shadow: 0 0 20px var(--red); }
         .category-box h3 { margin: 10px 0 0 0; font-size: 14px; }
 
-        /* منطقة العرض */
-        #display-area { display: none; background: #000; border: 2px solid var(--red); padding: 20px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); margin-top: 10px; min-height: 300px; }
+        #display-area { display: none; background: #000; border: 2px solid var(--red); padding: 20px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); margin-top: 10px; min-height: 400px; }
         .close-btn { position: absolute; top: 5px; left: 5px; color: var(--red); cursor: pointer; border: 1px solid var(--red); padding: 4px 10px; font-size: 12px; background: #000; z-index: 100; }
         
-        input, textarea { width: 100%; background: #0a0a0a; border: 1px solid #444; color: white; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; }
+        input, textarea, select { width: 100%; background: #0a0a0a; border: 1px solid #444; color: white; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; }
         .action-btn { background: var(--red); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         
         table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; }
@@ -35,8 +32,10 @@
         td { border: 1px solid #333; padding: 10px; text-align: center; word-break: break-all; }
         
         .admin-only { display: none; }
-        .map-container { position: relative; width: 100%; padding-bottom: 75%; height: 0; overflow: hidden; border: 1px solid var(--red); }
-        .map-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .wanted-img { width: 60px; height: 60px; object-fit: cover; border: 2px solid var(--red); border-radius: 5px; }
+        .report-card { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #080000; }
+        .tab-btn { padding: 10px; background: #222; border: 1px solid var(--red); color: white; cursor: pointer; margin-left: 5px; }
+        .tab-btn.active { background: var(--red); color: black; }
         .blink { animation: blinker 1.5s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
     </style>
@@ -74,14 +73,14 @@
 
     <script>
         let role = 'user';
+        let currentUser = "";
         const adminPass = "65554874";
         const userPasses = ["User1", "User2", "User3", "User4", "User5", "User6", "User7", "User8", "User9", "User10"];
 
-        // التحقق من الكود
         function checkPass() {
             const val = document.getElementById('pass-input').value;
-            if (val === adminPass) { role = 'admin'; startSystem("DIRECTOR"); }
-            else if (userPasses.includes(val)) { role = 'user'; logAccess(val); startSystem("AGENT: " + val); }
+            if (val === adminPass) { role = 'admin'; currentUser = "DIRECTOR"; startSystem(currentUser); }
+            else if (userPasses.includes(val)) { role = 'user'; currentUser = val; logAccess(val); startSystem("AGENT: " + val); }
             else { alert("ACCESS DENIED"); }
         }
 
@@ -96,7 +95,6 @@
             document.getElementById('main-interface').style.display = 'block';
             document.getElementById('auth-status').innerText = "● SYSTEM ACTIVE | " + msg;
             if(role === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.style.display = 'block');
-            document.body.style.alignItems = 'flex-start';
         }
 
         function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
@@ -105,148 +103,164 @@
             const area = document.getElementById('display-area');
             const body = document.getElementById('content-body');
             area.style.display = "block";
+            body.innerHTML = "";
             
-            if(type === 'intel') renderIntel(body);
-            else if(type === 'ops') renderOps(body);
+            if(type === 'ops') renderOps(body);
             else if(type === 'wanted') renderWanted(body);
             else if(type === 'reports') renderReports(body);
+            else if(type === 'map') renderMap(body);
+            else if(type === 'intel') renderIntel(body);
             else if(type === 'agents') renderAgents(body);
             else if(type === 'alerts') renderAlerts(body);
             else if(type === 'logs') renderLogs(body);
-            else if(type === 'map') body.innerHTML = `<div class="map-container"><iframe src="https://gta-5-map.com/"></iframe></div>`;
             
             window.scrollTo({ top: area.offsetTop, behavior: 'smooth' });
         }
 
-        // --- 1. المخبرين (مطور) ---
-        function renderIntel(container) {
-            const data = JSON.parse(localStorage.getItem('intel_db') || '[]');
-            let html = `<h3>🕵️ قاعدة بيانات المخبرين</h3>`;
-            if(role === 'admin') {
-                html += `<div style="background:#0a0000; padding:10px; border:1px solid #444; margin-bottom:15px;">
-                    <input id="i-n" placeholder="الاسم الكامل">
-                    <input id="i-a" placeholder="العمر">
-                    <input id="i-h" placeholder="المسكن">
-                    <input id="i-p" placeholder="رقم الهاتف">
-                    <button class="action-btn" onclick="addIntel()">تسجيل مخبر</button>
-                </div>`;
-            }
-            html += `<table><thead><tr><th>الاسم</th><th>العمر</th><th>المسكن</th><th>الهاتف</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
-            data.forEach((d, i) => {
-                html += `<tr><td>${d.n}</td><td>${d.a}</td><td>${d.h}</td><td>${d.p}</td>
-                ${role==='admin'?`<td><button onclick="del('intel_db',${i},'intel')">حذف</button></td>`:''}</tr>`;
-            });
-            container.innerHTML = html + "</tbody></table>";
-        }
-
-        function addIntel() {
-            const n=document.getElementById('i-n').value, a=document.getElementById('i-a').value, h=document.getElementById('i-h').value, p=document.getElementById('i-p').value;
-            if(!n || !p) return;
-            let db = JSON.parse(localStorage.getItem('intel_db') || '[]');
-            db.push({n, a, h, p});
-            localStorage.setItem('intel_db', JSON.stringify(db)); showContent('intel');
-        }
-
-        // --- 2. العمليات ---
+‎        // --- العمليات ---
         function renderOps(container) {
-            const data = JSON.parse(localStorage.getItem('ops_db') || '[]');
-            let html = `<h3>⚔️ العمليات النشطة</h3>`;
+            const data = JSON.parse(localStorage.getItem('ops_db_v3') || '[]');
+            let html = `<h3>⚔️ إدارة العمليات الميدانية</h3>`;
             if(role === 'admin') {
-                html += `<input id="o-n" placeholder="اسم العملية"><input id="o-c" placeholder="كود التشفير">
-                <button class="action-btn" onclick="addOp()">تنشيط العملية</button>`;
+                html += `<input id="o-n" placeholder="اسم العملية"><select id="o-t">
+                            <option value="current">عملية حالية</option>
+                            <option value="upcoming">عملية قادمة</option>
+                            <option value="previous">عملية سابقة</option>
+                         </select><button class="action-btn" onclick="addOp()">تنشيط</button>`;
             }
-            html += `<table><thead><tr><th>العملية</th><th>الكود</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
+            html += `<div style="margin:10px 0;">
+                <button class="tab-btn active" onclick="filterOps('all', this)">الكل</button>
+                <button class="tab-btn" onclick="filterOps('current', this)">حالية</button>
+                <button class="tab-btn" onclick="filterOps('upcoming', this)">قادمة</button>
+                <button class="tab-btn" onclick="filterOps('previous', this)">سابقة</button>
+            </div><table id="ops-table"><thead><tr><th>العملية</th><th>الحالة</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
+            
             data.forEach((d, i) => {
-                html += `<tr><td>${d.n}</td><td>${d.c}</td>${role==='admin'?`<td><button onclick="del('ops_db',${i},'ops')">X</button></td>`:''}</tr>`;
+                const statusMap = {current:'حالية', upcoming:'قادمة', previous:'سابقة'};
+                html += `<tr class="op-row" data-type="${d.t}"><td>${d.n}</td><td>${statusMap[d.t]}</td>${role==='admin'?`<td><button onclick="del('ops_db_v3',${i},'ops')">حذف</button></td>`:''}</tr>`;
             });
             container.innerHTML = html + "</tbody></table>";
         }
 
         function addOp() {
-            const n=document.getElementById('o-n').value, c=document.getElementById('o-c').value;
+            const n=document.getElementById('o-n').value, t=document.getElementById('o-t').value;
             if(!n) return;
-            let db = JSON.parse(localStorage.getItem('ops_db') || '[]');
-            db.push({n, c});
-            localStorage.setItem('ops_db', JSON.stringify(db)); showContent('ops');
+            let db = JSON.parse(localStorage.getItem('ops_db_v3') || '[]');
+            db.push({n, t}); localStorage.setItem('ops_db_v3', JSON.stringify(db)); 
+            showContent('ops'); // تحديث فوري
         }
 
-        // --- 3. المطلوبين ---
+        function filterOps(type, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.op-row').forEach(row => {
+                row.style.display = (type === 'all' || row.getAttribute('data-type') === type) ? '' : 'none';
+            });
+        }
+
+‎        // --- المطلوبين ---
         function renderWanted(container) {
-            let html = `<h3>🚨 قائمة المطلوبين</h3>`;
+            let html = `<h3>🚨 قائمة المطلوبين للعدالة</h3>`;
             if(role === 'admin') {
-                html += `<input id="w-n" placeholder="الاسم"><input id="w-s" placeholder="الحالة (خطر/ملاحق)">
-                <button class="action-btn" onclick="addWanted()">إضافة مطلوب</button>`;
+                html += `<input id="w-n" placeholder="اسم المجرم">
+                         <input id="w-s" placeholder="الحالة (خطر جداً/مطلوب حياً)">
+                         <input id="w-i" placeholder="رابط صورة المجرم (URL)">
+                         <button class="action-btn" onclick="addWanted()">إضافة للقائمة</button>`;
             }
-            html += `<table><thead><tr><th>الاسم</th><th>الحالة</th><th>التفاصيل</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody id="w-body"></tbody></table>`;
-            container.innerHTML = html;
-            
-            const manual = JSON.parse(localStorage.getItem('wanted_manual') || '[]');
-            const details = JSON.parse(localStorage.getItem('wanted_det') || '{}');
-            const tbody = document.getElementById('w-body');
-            
-            fetch('https://docs.google.com/spreadsheets/d/1-O5A7hWbWbyogPsXVxRknTuJK_tyejDa_WzzwCdqRNM/gviz/tq?tqx=out:json')
-            .then(res => res.text()).then(txt => {
-                const json = JSON.parse(txt.substring(47, txt.length - 2));
-                let rows = "";
-                manual.forEach((m, i) => {
-                    rows += `<tr><td>${m.n}</td><td>${m.s}</td><td>${details[m.n]||'-'} ${role==='admin'?`<button onclick="editDet('${m.n}')">تعديل</button>`:''}</td><td><button onclick="del('wanted_manual',${i},'wanted')">X</button></td></tr>`;
-                });
-                json.table.rows.forEach(r => {
-                    let name = r.c[0]?r.c[0].v:'-';
-                    rows += `<tr><td>${name}</td><td>${r.c[1]?r.c[1].v:'-'}</td><td>${details[name]||'-'} ${role==='admin'?`<button onclick="editDet('${name}')">تعديل</button>`:''}</td>${role==='admin'?'<td>-</td>':''}</tr>`;
-                });
-                tbody.innerHTML = rows;
-            }).catch(() => { tbody.innerHTML = "خطأ في الاتصال بالبيانات الخارجية."; });
+            html += `<table><thead><tr><th>الصورة</th><th>الاسم</th><th>الحالة</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
+            const data = JSON.parse(localStorage.getItem('wanted_db_v3') || '[]');
+            data.forEach((d, i) => {
+                html += `<tr>
+                    <td><img src="${d.img || 'https://via.placeholder.com/60/222/ff0000?text=NO+IMG'}" class="wanted-img"></td>
+                    <td>${d.n}</td><td>${d.s}</td>
+                    ${role==='admin'?`<td><button onclick="del('wanted_db_v3',${i},'wanted')">حذف</button></td>`:''}
+                </tr>`;
+            });
+            container.innerHTML = html + "</tbody></table>";
         }
 
         function addWanted() {
-            const n=document.getElementById('w-n').value, s=document.getElementById('w-s').value;
-            let db = JSON.parse(localStorage.getItem('wanted_manual') || '[]');
-            db.push({n, s}); localStorage.setItem('wanted_manual', JSON.stringify(db)); showContent('wanted');
+            const n=document.getElementById('w-n').value, s=document.getElementById('w-s').value, img=document.getElementById('w-i').value;
+            if(!n) return;
+            let db = JSON.parse(localStorage.getItem('wanted_db_v3') || '[]');
+            db.push({n, s, img}); localStorage.setItem('wanted_db_v3', JSON.stringify(db)); 
+            showContent('wanted'); // تحديث فوري
         }
 
-        function editDet(name) {
-            let det = JSON.parse(localStorage.getItem('wanted_det') || '{}');
-            let val = prompt("أدخل تفاصيل الهدف:", det[name] || "");
-            if(val !== null) { det[name] = val; localStorage.setItem('wanted_det', JSON.stringify(det)); showContent('wanted'); }
+‎        // --- التقارير ---
+        function renderReports(container) {
+            const data = JSON.parse(localStorage.getItem('rep_db_v3') || '[]');
+            let html = `<h3>📄 أرشيف التقارير السرية</h3>
+                <input id="r-num" placeholder="رقم التقرير (مثلاً #FBI-102)">
+                <textarea id="r-body" placeholder="محتوى التقرير التفصيلي..."></textarea>
+                <button class="action-btn" onclick="addReport()">بث التقرير للأرشيف</button>`;
+            
+            data.forEach((r, i) => {
+                html += `<div class="report-card">
+                    <small style="color:red; font-weight:bold;">الرقم التسلسلي: ${r.num}</small><br>
+                    <small style="color:#00ff00;">بواسطة: ${r.author}</small> | <small style="color:#666;">${r.date}</small>
+                    <p style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${r.text}</p>
+                    ${role === 'admin' ? `<button style="background:none; color:red; border:1px solid red; cursor:pointer;" onclick="del('rep_db_v3',${i},'reports')">حذف</button>` : ''}
+                </div>`;
+            });
+            container.innerHTML = html;
         }
 
-        // --- وظائف عامة ---
+        function addReport() {
+            const num=document.getElementById('r-num').value, text=document.getElementById('r-body').value;
+            if(!num || !text) return;
+            let db = JSON.parse(localStorage.getItem('rep_db_v3') || '[]');
+            db.unshift({ num, text, author: currentUser, date: new Date().toLocaleString('ar-EG') });
+            localStorage.setItem('rep_db_v3', JSON.stringify(db)); 
+            showContent('reports'); // تحديث فوري
+        }
+
+‎        // --- وظائف عامة ---
         function del(key, i, type) {
+            if(role !== 'admin') { alert("غير مصرح لك"); return; }
             let db = JSON.parse(localStorage.getItem(key));
-            db.splice(i, 1); localStorage.setItem(key, JSON.stringify(db)); showContent(type);
+            db.splice(i, 1); 
+            localStorage.setItem(key, JSON.stringify(db)); 
+            showContent(type); // تحديث القائمة فوراً بعد الحذف
         }
 
-        function renderReports(c) {
-            const d = JSON.parse(localStorage.getItem('rep_db') || '[]');
-            let h = `<h3>📄 التقارير</h3><textarea id="ri" placeholder="اكتب التقرير..."></textarea><button class="action-btn" onclick="saveData('rep_db','ri','reports')">بث</button>`;
-            d.forEach((x, i) => h += `<div style="border-bottom:1px solid #333; padding:10px 0;"><small style="color:red;">${x.date}</small><p>${x.text}</p>${role==='admin'?`<button onclick="del('rep_db',${i},'reports')">حذف</button>`:''}</div>`);
-            c.innerHTML = h;
+        function renderIntel(container) {
+            const data = JSON.parse(localStorage.getItem('intel_db') || '[]');
+            let html = `<h3>🕵️ قاعدة المخبرين</h3>`;
+            if(role === 'admin') html += `<input id="i-n" placeholder="الاسم"><input id="i-p" placeholder="الهاتف"><button class="action-btn" onclick="addIntel()">تسجيل</button>`;
+            html += `<table><thead><tr><th>الاسم</th><th>الهاتف</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
+            data.forEach((d, i) => html += `<tr><td>${d.n}</td><td>${d.p}</td>${role==='admin'?`<td><button onclick="del('intel_db',${i},'intel')">حذف</button></td>`:''}</tr>`);
+            container.innerHTML = html + "</tbody></table>";
+        }
+        function addIntel() {
+            const n=document.getElementById('i-n').value, p=document.getElementById('i-p').value;
+            if(!n) return;
+            let db = JSON.parse(localStorage.getItem('intel_db') || '[]');
+            db.push({n, p}); localStorage.setItem('intel_db', JSON.stringify(db)); 
+            showContent('intel');
         }
 
         function renderAgents(c) {
             const d = JSON.parse(localStorage.getItem('age_db') || '[]');
-            let h = `<h3>🎖️ العملاء</h3><input id="an" placeholder="الاسم"><input id="ac" placeholder="الكود"><button class="action-btn" onclick="addAgent()">إضافة</button><table><thead><tr><th>الاسم</th><th>الكود</th><th>X</th></tr></thead>`;
+            let h = `<h3>🎖️ العملاء</h3><input id="an" placeholder="الاسم"><input id="ac" placeholder="الكود"><button class="action-btn" onclick="addAgent()">إضافة</button><table><tr><th>الاسم</th><th>الكود</th><th>X</th></tr>`;
             d.forEach((x, i) => h += `<tr><td>${x.n}</td><td>${x.c}</td><td><button onclick="del('age_db',${i},'agents')">X</button></td></tr>`);
             c.innerHTML = h + "</table>";
         }
         function addAgent() {
+            const n=document.getElementById('an').value, c=document.getElementById('ac').value;
+            if(!n) return;
             let db = JSON.parse(localStorage.getItem('age_db') || '[]');
-            db.push({n:document.getElementById('an').value, c:document.getElementById('ac').value});
-            localStorage.setItem('age_db', JSON.stringify(db)); showContent('agents');
+            db.push({n, c}); localStorage.setItem('age_db', JSON.stringify(db)); 
+            showContent('agents');
         }
 
         function renderAlerts(c) {
             const d = JSON.parse(localStorage.getItem('alt_db') || '[]');
             let h = `<h3>⚠️ التنبيهات</h3>${role==='admin'?`<textarea id="ai"></textarea><button class="action-btn" onclick="saveData('alt_db','ai','alerts')">إرسال</button>`:''}`;
-            d.forEach(x => h += `<div style="border-left:3px solid red; padding:5px; margin:10px 0; background:#110000;"><small>${x.date}</small><p>${x.text}</p></div>`);
-            c.innerHTML = h;
-        }
-
-        function renderLogs(c) {
-            const d = JSON.parse(localStorage.getItem('fbi_logs') || '[]');
-            let h = `<h3>📊 سجل الدخول</h3>`;
-            d.forEach(x => h += `<div style="border-bottom:1px solid #222; padding:8px; font-size:11px;">AGENT: ${x.u} | TIME: ${x.t}</div>`);
+            d.forEach((x, i) => h += `<div style="border-left:3px solid red; padding:10px; margin:10px 0; background:#110000; position:relative;">
+                <p>${x.text}</p><small>${x.date}</small>
+                ${role==='admin'?`<button style="color:red; background:none; border:none; cursor:pointer;" onclick="del('alt_db',${i},'alerts')">[حذف]</button>`:''}
+            </div>`);
             c.innerHTML = h;
         }
 
@@ -254,7 +268,20 @@
             const v = document.getElementById(id).value; if(!v) return;
             let db = JSON.parse(localStorage.getItem(key) || '[]');
             db.unshift({text: v, date: new Date().toLocaleString('ar-EG')});
-            localStorage.setItem(key, JSON.stringify(db)); showContent(type);
+            localStorage.setItem(key, JSON.stringify(db)); 
+            showContent(type);
+        }
+
+        function renderMap(container) {
+            container.innerHTML = `<div style="position: relative; width: 100%; height: 550px; border: 2px solid var(--red); background: #000;">
+            <iframe src="https://gta-5-map.com" style="width: 100%; height: 100%; border: none;"></iframe></div>`;
+        }
+
+        function renderLogs(c) {
+            const d = JSON.parse(localStorage.getItem('fbi_logs') || '[]');
+            let h = `<h3>📊 سجل الدخول</h3>${role==='admin'?`<button class="action-btn" onclick="localStorage.removeItem('fbi_logs'); showContent('logs')">مسح السجل</button>`:''}`;
+            d.forEach(x => h += `<div style="border-bottom:1px solid #222; padding:8px;">AGENT: ${x.u} | TIME: ${x.t}</div>`);
+            c.innerHTML = h;
         }
     </script>
 </body>
