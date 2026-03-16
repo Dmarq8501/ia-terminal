@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA TERMINAL | v13.0 FINAL</title>
+    <style>
+        :root { --red: #ff0000; --bg: #050505; --panel: rgba(20, 0, 0, 0.94); }
+        body { color: #eee; font-family: 'Courier New', Courier, monospace; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--bg); position: relative; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://r2.erweima.ai/i/1723145415712771509.png'); background-size: cover; background-position: center; opacity: 0.25; z-index: -2; }
+        
+        /* شاشة تسجيل الدخول */
+        #login-screen { text-align: center; border: 2px solid var(--red); padding: 40px 20px; background: var(--panel); width: 85%; max-width: 380px; box-shadow: 0 0 25px var(--red); z-index: 10; border-radius: 10px; }
+        #login-screen input { background: black; border: 1px solid var(--red); color: var(--red); padding: 15px; width: 100%; margin-top: 25px; text-align: center; box-sizing: border-box; font-size: 16px; outline: none; }
+        #login-screen button { background: var(--red); color: black; border: none; padding: 12px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        /* الواجهة الرئيسية */
+        #main-interface { display: none; width: 100%; max-width: 950px; padding: 20px; box-sizing: border-box; align-self: flex-start; }
+        header { border-bottom: 2px solid var(--red); padding: 15px; text-align: center; margin-bottom: 25px; background: rgba(0,0,0,0.7); }
+        
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .category-box { background: var(--panel); border: 1px solid var(--red); padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.3s; border-radius: 5px; }
+        .category-box:hover { background: var(--red); color: black; box-shadow: 0 0 20px var(--red); }
+        .category-box h3 { margin: 10px 0 0 0; font-size: 14px; }
+
+        /* منطقة العرض */
+        #display-area { display: none; background: #000; border: 2px solid var(--red); padding: 20px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); margin-top: 10px; min-height: 300px; }
+        .close-btn { position: absolute; top: 5px; left: 5px; color: var(--red); cursor: pointer; border: 1px solid var(--red); padding: 4px 10px; font-size: 12px; background: #000; z-index: 100; }
+        
+        input, textarea { width: 100%; background: #0a0a0a; border: 1px solid #444; color: white; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; }
+        .action-btn { background: var(--red); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; }
+        th { background: var(--red); color: black; padding: 8px; }
+        td { border: 1px solid #333; padding: 10px; text-align: center; word-break: break-all; }
+        
+        .admin-only { display: none; }
+        .map-container { position: relative; width: 100%; padding-bottom: 75%; height: 0; overflow: hidden; border: 1px solid var(--red); }
+        .map-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .blink { animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <h2 style="color: var(--red); margin:0;">FEDERAL AUTHENTICATION</h2>
+        <input type="password" id="pass-input" placeholder="ACCESS CODE">
+        <button onclick="checkPass()">LOGIN</button>
+    </div>
+
+    <div id="main-interface">
+        <header>
+            <h1 style="margin:0; color:var(--red); font-size: 18px;">INTELLIGENCE AGENCY TERMINAL</h1>
+            <div id="auth-status" style="font-size: 10px; color: #00ff00;" class="blink"></div>
+        </header>
+
+        <div class="grid-container">
+            <div class="category-box" onclick="showContent('ops')">⚔️<h3>العمليات</h3></div>
+            <div class="category-box" onclick="showContent('wanted')">🚨<h3>المطلوبين</h3></div>
+            <div class="category-box admin-only" onclick="showContent('agents')">🎖️<h3>العملاء</h3></div>
+            <div class="category-box" onclick="showContent('intel')">🕵️<h3>المخبرين</h3></div>
+            <div class="category-box" onclick="showContent('reports')">📄<h3>التقارير</h3></div>
+            <div class="category-box" onclick="showContent('map')">📍<h3>الخريطة</h3></div> 
+            <div class="category-box admin-only" onclick="showContent('logs')">📊<h3>سجل الدخول</h3></div>
+            <div class="category-box" style="grid-column: span 2;" onclick="showContent('alerts')">⚠️<h3>التنبيهات</h3></div>
+        </div>
+
+        <div id="display-area">
+            <span class="close-btn" onclick="closeDisplay()">إغلاق [X]</span>
+            <div id="content-body"></div>
+        </div>
+    </div>
+
+    <script>
+        let role = 'user';
+        const adminPass = "65554874";
+        const userPasses = ["User1", "User2", "User3", "User4", "User5", "User6", "User7", "User8", "User9", "User10"];
+
+        // التحقق من الكود
+        function checkPass() {
+            const val = document.getElementById('pass-input').value;
+            if (val === adminPass) { role = 'admin'; startSystem("DIRECTOR"); }
+            else if (userPasses.includes(val)) { role = 'user'; logAccess(val); startSystem("AGENT: " + val); }
+            else { alert("ACCESS DENIED"); }
+        }
+
+        function logAccess(u) {
+            let logs = JSON.parse(localStorage.getItem('fbi_logs') || '[]');
+            logs.unshift({ u, t: new Date().toLocaleString('ar-EG') });
+            localStorage.setItem('fbi_logs', JSON.stringify(logs));
+        }
+
+        function startSystem(msg) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-interface').style.display = 'block';
+            document.getElementById('auth-status').innerText = "● SYSTEM ACTIVE | " + msg;
+            if(role === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.style.display = 'block');
+            document.body.style.alignItems = 'flex-start';
+        }
+
+        function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
+
+        function showContent(type) {
+            const area = document.getElementById('display-area');
+            const body = document.getElementById('content-body');
+            area.style.display = "block";
+            
+            if(type === 'intel') renderIntel(body);
+            else if(type === 'ops') renderOps(body);
+            else if(type === 'wanted') renderWanted(body);
+            else if(type === 'reports') renderReports(body);
+            else if(type === 'agents') renderAgents(body);
+            else if(type === 'alerts') renderAlerts(body);
+            else if(type === 'logs') renderLogs(body);
+            else if(type === 'map') body.innerHTML = `<div class="map-container"><iframe src="https://gta-5-map.com/"></iframe></div>`;
+            
+            window.scrollTo({ top: area.offsetTop, behavior: 'smooth' });
+        }
+
+        // --- 1. المخبرين (مطور) ---
+        function renderIntel(container) {
+            const data = JSON.parse(localStorage.getItem('intel_db') || '[]');
+            let html = `<h3>🕵️ قاعدة بيانات المخبرين</h3>`;
+            if(role === 'admin') {
+                html += `<div style="background:#0a0000; padding:10px; border:1px solid #444; margin-bottom:15px;">
+                    <input id="i-n" placeholder="الاسم الكامل">
+                    <input id="i-a" placeholder="العمر">
+                    <input id="i-h" placeholder="المسكن">
+                    <input id="i-p" placeholder="رقم الهاتف">
+                    <button class="action-btn" onclick="addIntel()">تسجيل مخبر</button>
+                </div>`;
+            }
+            html += `<table><thead><tr><th>الاسم</th><th>العمر</th><th>المسكن</th><th>الهاتف</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
+            data.forEach((d, i) => {
+                html += `<tr><td>${d.n}</td><td>${d.a}</td><td>${d.h}</td><td>${d.p}</td>
+                ${role==='admin'?`<td><button onclick="del('intel_db',${i},'intel')">حذف</button></td>`:''}</tr>`;
+            });
+            container.innerHTML = html + "</tbody></table>";
+        }
+
+        function addIntel() {
+            const n=document.getElementById('i-n').value, a=document.getElementById('i-a').value, h=document.getElementById('i-h').value, p=document.getElementById('i-p').value;
+            if(!n || !p) return;
+            let db = JSON.parse(localStorage.getItem('intel_db') || '[]');
+            db.push({n, a, h, p});
+            localStorage.setItem('intel_db', JSON.stringify(db)); showContent('intel');
+        }
+
+        // --- 2. العمليات ---
+        function renderOps(container) {
+            const data = JSON.parse(localStorage.getItem('ops_db') || '[]');
+            let html = `<h3>⚔️ العمليات النشطة</h3>`;
+            if(role === 'admin') {
+                html += `<input id="o-n" placeholder="اسم العملية"><input id="o-c" placeholder="كود التشفير">
+                <button class="action-btn" onclick="addOp()">تنشيط العملية</button>`;
+            }
+            html += `<table><thead><tr><th>العملية</th><th>الكود</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody>`;
+            data.forEach((d, i) => {
+                html += `<tr><td>${d.n}</td><td>${d.c}</td>${role==='admin'?`<td><button onclick="del('ops_db',${i},'ops')">X</button></td>`:''}</tr>`;
+            });
+            container.innerHTML = html + "</tbody></table>";
+        }
+
+        function addOp() {
+            const n=document.getElementById('o-n').value, c=document.getElementById('o-c').value;
+            if(!n) return;
+            let db = JSON.parse(localStorage.getItem('ops_db') || '[]');
+            db.push({n, c});
+            localStorage.setItem('ops_db', JSON.stringify(db)); showContent('ops');
+        }
+
+        // --- 3. المطلوبين ---
+        function renderWanted(container) {
+            let html = `<h3>🚨 قائمة المطلوبين</h3>`;
+            if(role === 'admin') {
+                html += `<input id="w-n" placeholder="الاسم"><input id="w-s" placeholder="الحالة (خطر/ملاحق)">
+                <button class="action-btn" onclick="addWanted()">إضافة مطلوب</button>`;
+            }
+            html += `<table><thead><tr><th>الاسم</th><th>الحالة</th><th>التفاصيل</th>${role==='admin'?'<th>X</th>':''}</tr></thead><tbody id="w-body"></tbody></table>`;
+            container.innerHTML = html;
+            
+            const manual = JSON.parse(localStorage.getItem('wanted_manual') || '[]');
+            const details = JSON.parse(localStorage.getItem('wanted_det') || '{}');
+            const tbody = document.getElementById('w-body');
+            
+            fetch('https://docs.google.com/spreadsheets/d/1-O5A7hWbWbyogPsXVxRknTuJK_tyejDa_WzzwCdqRNM/gviz/tq?tqx=out:json')
+            .then(res => res.text()).then(txt => {
+                const json = JSON.parse(txt.substring(47, txt.length - 2));
+                let rows = "";
+                manual.forEach((m, i) => {
+                    rows += `<tr><td>${m.n}</td><td>${m.s}</td><td>${details[m.n]||'-'} ${role==='admin'?`<button onclick="editDet('${m.n}')">تعديل</button>`:''}</td><td><button onclick="del('wanted_manual',${i},'wanted')">X</button></td></tr>`;
+                });
+                json.table.rows.forEach(r => {
+                    let name = r.c[0]?r.c[0].v:'-';
+                    rows += `<tr><td>${name}</td><td>${r.c[1]?r.c[1].v:'-'}</td><td>${details[name]||'-'} ${role==='admin'?`<button onclick="editDet('${name}')">تعديل</button>`:''}</td>${role==='admin'?'<td>-</td>':''}</tr>`;
+                });
+                tbody.innerHTML = rows;
+            }).catch(() => { tbody.innerHTML = "خطأ في الاتصال بالبيانات الخارجية."; });
+        }
+
+        function addWanted() {
+            const n=document.getElementById('w-n').value, s=document.getElementById('w-s').value;
+            let db = JSON.parse(localStorage.getItem('wanted_manual') || '[]');
+            db.push({n, s}); localStorage.setItem('wanted_manual', JSON.stringify(db)); showContent('wanted');
+        }
+
+        function editDet(name) {
+            let det = JSON.parse(localStorage.getItem('wanted_det') || '{}');
+            let val = prompt("أدخل تفاصيل الهدف:", det[name] || "");
+            if(val !== null) { det[name] = val; localStorage.setItem('wanted_det', JSON.stringify(det)); showContent('wanted'); }
+        }
+
+        // --- وظائف عامة ---
+        function del(key, i, type) {
+            let db = JSON.parse(localStorage.getItem(key));
+            db.splice(i, 1); localStorage.setItem(key, JSON.stringify(db)); showContent(type);
+        }
+
+        function renderReports(c) {
+            const d = JSON.parse(localStorage.getItem('rep_db') || '[]');
+            let h = `<h3>📄 التقارير</h3><textarea id="ri" placeholder="اكتب التقرير..."></textarea><button class="action-btn" onclick="saveData('rep_db','ri','reports')">بث</button>`;
+            d.forEach((x, i) => h += `<div style="border-bottom:1px solid #333; padding:10px 0;"><small style="color:red;">${x.date}</small><p>${x.text}</p>${role==='admin'?`<button onclick="del('rep_db',${i},'reports')">حذف</button>`:''}</div>`);
+            c.innerHTML = h;
+        }
+
+        function renderAgents(c) {
+            const d = JSON.parse(localStorage.getItem('age_db') || '[]');
+            let h = `<h3>🎖️ العملاء</h3><input id="an" placeholder="الاسم"><input id="ac" placeholder="الكود"><button class="action-btn" onclick="addAgent()">إضافة</button><table><thead><tr><th>الاسم</th><th>الكود</th><th>X</th></tr></thead>`;
+            d.forEach((x, i) => h += `<tr><td>${x.n}</td><td>${x.c}</td><td><button onclick="del('age_db',${i},'agents')">X</button></td></tr>`);
+            c.innerHTML = h + "</table>";
+        }
+        function addAgent() {
+            let db = JSON.parse(localStorage.getItem('age_db') || '[]');
+            db.push({n:document.getElementById('an').value, c:document.getElementById('ac').value});
+            localStorage.setItem('age_db', JSON.stringify(db)); showContent('agents');
+        }
+
+        function renderAlerts(c) {
+            const d = JSON.parse(localStorage.getItem('alt_db') || '[]');
+            let h = `<h3>⚠️ التنبيهات</h3>${role==='admin'?`<textarea id="ai"></textarea><button class="action-btn" onclick="saveData('alt_db','ai','alerts')">إرسال</button>`:''}`;
+            d.forEach(x => h += `<div style="border-left:3px solid red; padding:5px; margin:10px 0; background:#110000;"><small>${x.date}</small><p>${x.text}</p></div>`);
+            c.innerHTML = h;
+        }
+
+        function renderLogs(c) {
+            const d = JSON.parse(localStorage.getItem('fbi_logs') || '[]');
+            let h = `<h3>📊 سجل الدخول</h3>`;
+            d.forEach(x => h += `<div style="border-bottom:1px solid #222; padding:8px; font-size:11px;">AGENT: ${x.u} | TIME: ${x.t}</div>`);
+            c.innerHTML = h;
+        }
+
+        function saveData(key, id, type) {
+            const v = document.getElementById(id).value; if(!v) return;
+            let db = JSON.parse(localStorage.getItem(key) || '[]');
+            db.unshift({text: v, date: new Date().toLocaleString('ar-EG')});
+            localStorage.setItem(key, JSON.stringify(db)); showContent(type);
+        }
+    </script>
+</body>
+</html>
