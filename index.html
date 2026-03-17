@@ -1,266 +1,251 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA TERMINAL | v18.5 ADVANCED</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --red: #ff0000; --bg: #050505; --panel: rgba(20, 0, 0, 0.94); }
-        body { color: #eee; font-family: 'Courier New', Courier, monospace; margin: 0; background-color: var(--bg); display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://r2.erweima.ai/i/1723145415712771509.png'); background-size: cover; background-position: center; opacity: 0.2; z-index: -2; }
+‏<!DOCTYPE html>
+‏<html lang="ar" dir="rtl">
+‏<head>
+‏    <meta charset="UTF-8">
+‏    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+‏    <title>IA TERMINAL | v19.0 FINAL EDITION</title>
+‏    <style>
+‏        :root { --red: #ff0000; --bg: #050505; --panel: rgba(20, 0, 0, 0.94); }
+‏        body { color: #eee; font-family: 'Courier New', Courier, monospace; margin: 0; background-color: var(--bg); display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+‏        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://r2.erweima.ai/i/1723145415712771509.png'); background-size: cover; background-position: center; opacity: 0.2; z-index: -2; }
         
-        #login-screen { align-self: center; text-align: center; border: 2px solid var(--red); padding: 40px 20px; background: var(--panel); width: 85%; max-width: 380px; box-shadow: 0 0 25px var(--red); z-index: 10; border-radius: 10px; }
-        #login-screen input { background: black; border: 1px solid var(--red); color: var(--red); padding: 15px; width: 100%; margin-top: 25px; text-align: center; box-sizing: border-box; font-size: 16px; outline: none; }
-        #login-screen button { background: var(--red); color: black; border: none; padding: 12px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; }
+        /* شاشة تسجيل الدخول */
+‏        #login-screen { align-self: center; text-align: center; border: 2px solid var(--red); padding: 40px 20px; background: var(--panel); width: 85%; max-width: 380px; box-shadow: 0 0 25px var(--red); z-index: 10; border-radius: 10px; }
+‏        #login-screen input { background: black; border: 1px solid var(--red); color: var(--red); padding: 15px; width: 100%; margin-top: 25px; text-align: center; box-sizing: border-box; font-size: 16px; outline: none; }
+‏        #login-screen button { background: var(--red); color: black; border: none; padding: 12px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; }
         
-        #main-interface { display: none; width: 100%; max-width: 1000px; padding: 20px; box-sizing: border-box; }
-        header { border-bottom: 2px solid var(--red); padding: 15px; text-align: center; margin-bottom: 25px; background: rgba(0,0,0,0.7); }
+        /* الواجهة الرئيسية */
+‏        #main-interface { display: none; width: 100%; max-width: 950px; padding: 20px; box-sizing: border-box; }
+‏        header { border-bottom: 2px solid var(--red); padding: 15px; text-align: center; margin-bottom: 25px; background: rgba(0,0,0,0.7); }
         
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
-        .category-box { background: var(--panel); border: 1px solid var(--red); padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.3s; border-radius: 5px; }
-        .category-box:hover { background: var(--red); color: black; box-shadow: 0 0 20px var(--red); }
-        .category-box h3 { margin: 10px 0 0 0; font-size: 14px; }
+‏        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+‏        .category-box { background: var(--panel); border: 1px solid var(--red); padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.3s; border-radius: 5px; }
+‏        .category-box:hover { background: var(--red); color: black; box-shadow: 0 0 20px var(--red); }
+‏        .category-box h3 { margin: 10px 0 0 0; font-size: 14px; }
 
-        #display-area { display: none; background: #000; border: 2px solid var(--red); padding: 20px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); margin-top: 10px; min-height: 400px; }
-        .close-btn { position: absolute; top: 5px; left: 5px; color: var(--red); cursor: pointer; border: 1px solid var(--red); padding: 4px 10px; font-size: 12px; background: #000; z-index: 100; }
+        /* منطقة العرض */
+‏        #display-area { display: none; background: #000; border: 2px solid var(--red); padding: 20px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); min-height: 400px; margin-bottom: 50px;}
+‏        .close-btn { position: absolute; top: 5px; left: 5px; color: var(--red); cursor: pointer; border: 1px solid var(--red); padding: 4px 10px; font-size: 12px; background: #000; z-index: 100; }
         
-        .form-group { background: #111; padding: 15px; border: 1px solid #333; margin-bottom: 20px; }
-        input, textarea, select { width: 100%; background: #0a0a0a; border: 1px solid #444; color: white; padding: 10px; margin-bottom: 10px; box-sizing: border-box; font-family: inherit; font-size: 13px; }
-        .action-btn { background: var(--red); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        /* النماذج والجداول */
+‏        input, textarea, select { width: 100%; background: #0a0a0a; border: 1px solid #444; color: white; padding: 10px; margin-bottom: 8px; box-sizing: border-box; font-family: inherit; }
+‏        .action-btn { background: var(--red); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+‏        .del-btn { background: #400; color: #f55; border: 1px solid #600; padding: 3px; font-size: 9px; cursor: pointer; width: 100%; margin-top: 5px; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; }
-        th { background: var(--red); color: black; padding: 8px; }
-        td { border: 1px solid #333; padding: 10px; text-align: center; word-break: break-all; }
+‏        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; }
+‏        th { background: var(--red); color: black; padding: 8px; }
+‏        td { border: 1px solid #333; padding: 8px; text-align: center; vertical-align: top; }
         
-        .admin-only { display: none; }
-        .wanted-img { width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--red); margin: 5px; }
-        .report-card { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #080000; border-right: 4px solid var(--red); }
-        .blink { animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
-    </style>
-</head>
-<body>
+‏        .wanted-img { width: 65px; height: 65px; object-fit: cover; border: 1px solid var(--red); }
+‏        .report-card { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #080000; border-right: 3px solid var(--red); }
+‏        #map-coords { background: #000; color: #0f0; padding: 5px; font-size: 10px; text-align: center; border: 1px solid #0f0; margin-bottom: 5px; }
+‏    </style>
+‏</head>
+‏<body>
 
-    <div id="login-screen">
-        <h2 style="color: var(--red); margin:0;">FEDERAL AUTHENTICATION</h2>
-        <input type="password" id="pass-input" placeholder="ACCESS CODE">
-        <button onclick="checkPass()">LOGIN</button>
-    </div>
+‏    <div id="login-screen">
+‏        <h2 style="color: var(--red); margin:0;">FEDERAL AUTHENTICATION</h2>
+‏        <input type="password" id="pass-input" placeholder="ACCESS CODE">
+‏        <button onclick="checkPass()">LOGIN</button>
+‏    </div>
 
-    <div id="main-interface">
-        <header>
-            <h1 style="margin:0; color:var(--red); font-size: 18px;">INTELLIGENCE AGENCY TERMINAL</h1>
-            <div id="auth-status" style="font-size: 10px; color: #00ff00;" class="blink"></div>
-        </header>
+‏    <div id="main-interface">
+‏        <header>
+‏            <h1 style="margin:0; color:var(--red); font-size: 18px;">INTELLIGENCE AGENCY TERMINAL [CLOUD]</h1>
+‏            <div id="auth-status" style="font-size: 10px; color: #00ff00;"></div>
+‏        </header>
 
-        <div class="grid-container">
-            <div class="category-box" onclick="showContent('ops')">⚔️<h3>العمليات</h3></div>
-            <div class="category-box" onclick="showContent('wanted')">🚨<h3>المطلوبين</h3></div>
-            <div class="category-box admin-only" onclick="showContent('agents')">🎖️<h3>العملاء</h3></div>
-            <div class="category-box" onclick="showContent('intel')">🕵️<h3>المخبرين</h3></div>
-            <div class="category-box" onclick="showContent('reports')">📄<h3>التقارير</h3></div>
-            <div class="category-box" onclick="showContent('map')">📍<h3>الخريطة</h3></div> 
-            <div class="category-box admin-only" onclick="showContent('logs')">📊<h3>سجل الدخول</h3></div>
-            <div class="category-box" style="grid-column: span 2;" onclick="showContent('alerts')">⚠️<h3>التنبيهات</h3></div>
-        </div>
+‏        <div class="grid-container">
+‏            <div class="category-box" onclick="showContent('ops')">⚔️<h3>العمليات</h3></div>
+‏            <div class="category-box" onclick="showContent('wanted')">🚨<h3>المطلوبين</h3></div>
+‏            <div class="category-box" onclick="showContent('agents')">🎖️<h3>العملاء</h3></div>
+‏            <div class="category-box" onclick="showContent('intel')">🕵️<h3>المخبرين</h3></div>
+‏            <div class="category-box" onclick="showContent('reports')">📄<h3>التقارير</h3></div>
+‏            <div class="category-box" onclick="showContent('map')">📍<h3>الخريطة</h3></div>
+‏            <div id="logs-btn" class="category-box" onclick="showContent('logs')" style="display:none;">📊<h3>السجلات</h3></div>
+‏            <div class="category-box" onclick="showContent('alerts')">⚠️<h3>التنبيهات</h3></div>
+‏        </div>
 
-        <div id="display-area">
-            <span class="close-btn" onclick="closeDisplay()">إغلاق [X]</span>
-            <div id="content-body">جاري جلب البيانات...</div>
-        </div>
-    </div>
+‏        <div id="display-area">
+‏            <span class="close-btn" onclick="closeDisplay()">إغلاق [X]</span>
+‏            <div id="content-body"></div>
+‏        </div>
+‏    </div>
 
-    <script>
-        // --- إعدادات سابابيس ---
-        const SUPABASE_URL = 'https://diomqatoqyjkliujiqkb.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpb21xYXRvcXlqa2xpdWppcWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODMyMDIsImV4cCI6MjA4OTI1OTIwMn0.0BLdFMhyhvcIzIexDnycRHFFKNseHsEuFkh3hbHUPRs';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+‏    <script>
+‏        const SB_URL = "https://diomqatoqyjkliujiqkb.supabase.co/rest/v1";
+‏        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpb21xYXRvcXlqa2xpdWppcWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODMyMDIsImV4cCI6MjA4OTI1OTIwMn0.0BLdFMhyhvcIzIexDnycRHFFKNseHsEuFkh3hbHUPRs";
+‏        const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" };
 
-        let role = 'user';
-        let currentUser = "";
-        const adminPass = "65554874";
-        const userPasses = ["User1", "User2", "User3", "User4", "User5", "User6", "User7", "User8", "User9", "User10"];
+‏        let isAdmin = false; 
+‏        let currentUser = "";
+‏        const PASS_ADMIN = "65554874"; // المدير (Director)
+‏        const PASS_DEPUTY = "12341234"; // مساعد المدير (Deputy)
 
-        async function checkPass() {
-            const val = document.getElementById('pass-input').value.trim();
-            if (val === adminPass) { role = 'admin'; currentUser = "DIRECTOR"; }
-            else if (userPasses.includes(val)) { role = 'user'; currentUser = val; }
-            else { alert("ACCESS DENIED"); return; }
-            await supabase.from('logs').insert([{ username: currentUser, date: new Date().toLocaleString('ar-EG') }]);
-            startSystem(currentUser);
-        }
+‏        async function checkPass() {
+‏            const val = document.getElementById('pass-input').value.trim();
+‏            if (!val) return;
 
-        function startSystem(msg) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-interface').style.display = 'block';
-            document.getElementById('auth-status').innerText = "● SYSTEM ACTIVE | " + msg;
-            if(role === 'admin') document.querySelectorAll('.admin-only').forEach(e => e.style.display = 'block');
-        }
+‏            if (val === PASS_ADMIN) { isAdmin = true; currentUser = "DIRECTOR"; }
+‏            else if (val === PASS_DEPUTY) { isAdmin = true; currentUser = "DEPUTY"; }
+‏            else { isAdmin = false; currentUser = val; }
 
-        function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
-
-        async function showContent(type) {
-            const area = document.getElementById('display-area');
-            const body = document.getElementById('content-body');
-            area.style.display = "block";
-            body.innerHTML = "جاري الاتصال بالقاعدة...";
+            // تسجيل الدخول في السحابة
+‏            await fetch(`${SB_URL}/logs`, { method: 'POST', headers, body: JSON.stringify({ user_name: currentUser, entry_time: new Date().toLocaleString('ar-EG') }) });
             
-            if(type === 'ops') renderOps(body);
-            else if(type === 'wanted') renderWanted(body);
-            else if(type === 'reports') renderReports(body);
-            else if(type === 'intel') renderIntel(body);
-            else if(type === 'agents') renderAgents(body);
-            else if(type === 'logs') renderLogs(body);
-            else if(type === 'alerts') renderAlerts(body);
-            else if(type === 'map') renderMap(body);
+‏            document.getElementById('login-screen').style.display = 'none';
+‏            document.getElementById('main-interface').style.display = 'block';
+‏            document.getElementById('auth-status').innerText = "● ACTIVE SESSION: " + currentUser + (isAdmin ? " [ADMIN_LEVEL]" : " [AGENT_LEVEL]");
+‏            if(isAdmin) document.getElementById('logs-btn').style.display = 'block';
         }
 
-        // --- ⚔️ العمليات ---
-        async function renderOps(c) {
-            const { data: ops } = await supabase.from('operations').select('*').order('id', { ascending: false });
-            let h = `<h3>⚔️ إدارة العمليات الميدانية</h3>`;
-            if(role === 'admin') {
-                h += `<div class="form-group">
-                    <input id="o-n" placeholder="اسم العملية">
-                    <input id="o-p" placeholder="مكان العملية">
-                    <textarea id="o-d" placeholder="تفاصيل العملية الشاملة..."></textarea>
-                    <button class="action-btn" onclick="addOpCloud()">تنشيط العملية</button>
-                </div>`;
+‏        function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
+
+        // دالة الحذف (للمدير فقط)
+‏        async function deleteItem(table, id) {
+‏            if(!isAdmin) return alert("خطأ: لا تملك صلاحيات الحذف.");
+‏            if(confirm("تأكيد الحذف النهائي؟")) {
+‏                await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers });
+‏                showContent(table);
             }
-            h += `<table><tr><th>العملية</th><th>الموقع</th><th>التفاصيل</th>${role==='admin'?'<th>X</th>':''}</tr>`;
-            ops?.forEach(d => h += `<tr><td>${d.name}</td><td>${d.place}</td><td style="font-size:10px">${d.details}</td>${role==='admin'?`<td><button onclick="delCloud('operations',${d.id},'ops')">X</button></td>`:''}</tr>`);
-            c.innerHTML = h + "</table>";
-        }
-        async function addOpCloud() {
-            await supabase.from('operations').insert([{ name: document.getElementById('o-n').value, place: document.getElementById('o-p').value, details: document.getElementById('o-d').value }]);
-            showContent('ops');
         }
 
-        // --- 🚨 المطلوبين ---
-        async function renderWanted(c) {
-            const { data: wanted } = await supabase.from('wanted').select('*').order('id', { ascending: false });
-            let h = `<h3>🚨 قائمة المطلوبين للعدالة</h3>`;
-            if(role === 'admin') {
-                h += `<div class="form-group">
-                    <input id="w-n" placeholder="اسم المطلوب">
-                    <input id="w-s" placeholder="الحالة (هارب/مراقب/معتقل)">
-                    <input id="w-r" placeholder="رقم التقرير المرتبط">
-                    <input id="w-i" placeholder="رابط الصورة">
-                    <textarea id="w-d" placeholder="تفاصيل إضافية عن المجرم..."></textarea>
-                    <button class="action-btn" onclick="addWantedCloud()">إضافة للقائمة</button>
-                </div>`;
-            }
-            h += `<table><tr><th>الصورة</th><th>البيانات</th><th>التفاصيل</th>${role==='admin'?'<th>X</th>':''}</tr>`;
-            wanted?.forEach(d => h += `<tr>
-                <td><img src="${d.image}" class="wanted-img"></td>
-                <td style="text-align:right"><b>الاسم:</b> ${d.name}<br><b>الحالة:</b> ${d.status}<br><b>تقرير:</b> ${d.report_number}</td>
-                <td style="font-size:10px">${d.details || 'لا يوجد'}</td>
-                ${role==='admin'?`<td><button onclick="delCloud('wanted',${d.id},'wanted')">X</button></td>`:''}</tr>`);
-            c.innerHTML = h + "</table>";
-        }
-        async function addWantedCloud() {
-            await supabase.from('wanted').insert([{ name: document.getElementById('w-n').value, status: document.getElementById('w-s').value, report_number: document.getElementById('w-r').value, image: document.getElementById('w-i').value, details: document.getElementById('w-d').value }]);
-            showContent('wanted');
+‏        async function showContent(type) {
+‏            const body = document.getElementById('content-body');
+‏            document.getElementById('display-area').style.display = "block";
+‏            body.innerHTML = "<p>جاري سحب البيانات من القمر الصناعي...</p>";
+            
+‏            if(type === 'ops') await renderOps(body);
+‏            else if(type === 'wanted') await renderWanted(body);
+‏            else if(type === 'agents') await renderAgents(body);
+‏            else if(type === 'intel') await renderIntel(body);
+‏            else if(type === 'reports') await renderReports(body);
+‏            else if(type === 'logs') await renderLogs(body);
+‏            else if(type === 'alerts') await renderAlerts(body);
+‏            else if(type === 'map') renderMap(body);
         }
 
-        // --- 🕵️ المخبرين ---
-        async function renderIntel(c) {
-            const { data: intel } = await supabase.from('informants').select('*').order('id', { ascending: false });
-            let h = `<h3>🕵️ سجل المخبرين السريين</h3>`;
-            if(role === 'admin') {
-                h += `<div class="form-group">
-                    <input id="i-n" placeholder="الاسم الحركي/الحقيقي">
-                    <input id="i-p" placeholder="رقم الهاتف">
-                    <input id="i-a" placeholder="السكن / المنطقة">
-                    <input id="i-i" placeholder="رابط صورة المخبر">
-                    <textarea id="i-d" placeholder="تفاصيل إضافية / الموثوقية..."></textarea>
-                    <button class="action-btn" onclick="addIntelCloud()">تسجيل مخبر</button>
-                </div>`;
-            }
-            h += `<table><tr><th>الصورة</th><th>معلومات الاتصال</th><th>السكن والتفاصيل</th>${role==='admin'?'<th>X</th>':''}</tr>`;
-            intel?.forEach(d => h += `<tr>
-                <td><img src="${d.image || 'https://via.placeholder.com/60'}" class="wanted-img" style="border-radius:50%"></td>
-                <td>${d.name}<br>${d.phone}</td>
-                <td><b>السكن:</b> ${d.address}<br><small>${d.details}</small></td>
-                ${role==='admin'?`<td><button onclick="delCloud('informants',${d.id},'intel')">X</button></td>`:''}</tr>`);
-            c.innerHTML = h + "</table>";
-        }
-        async function addIntelCloud() {
-            await supabase.from('informants').insert([{ name: document.getElementById('i-n').value, phone: document.getElementById('i-p').value, address: document.getElementById('i-a').value, image: document.getElementById('i-i').value, details: document.getElementById('i-d').value }]);
-            showContent('intel');
+        // 1. الخريطة
+‏        function renderMap(c) {
+‏            c.innerHTML = `<h3>📍 نظام الخرائط التفاعلي</h3>
+‏            <div id="map-coords">حرك الماوس لتحديد الموقع الميداني</div>
+‏            <iframe id="gta-map" src="https://gta-5-map.com/" style="width: 100%; height: 500px; border: 1px solid var(--red);"></iframe>`;
+‏            document.getElementById('gta-map').addEventListener('mousemove', (e) => {
+‏                document.getElementById('map-coords').innerText = `إحداثيات الميدان التقديرية: X: ${e.offsetX} | Y: ${e.offsetY}`;
+            });
         }
 
-        // --- 🎖️ العملاء ---
-        async function renderAgents(c) {
-            const { data: agents } = await supabase.from('agents').select('*').order('id', { ascending: false });
-            let h = `<h3>🎖️ إدارة شؤون العملاء</h3>`;
-            if(role === 'admin') {
-                h += `<div class="form-group">
-                    <input id="an" placeholder="اسم العميل">
-                    <input id="ac" placeholder="كود العميل السري">
-                    <input id="ar" placeholder="الرتبة (وكيل/نقيب/خبير)">
-                    <button class="action-btn" onclick="addAgentCloud()">تعيين عميل</button>
-                </div>`;
-            }
-            h += `<table><tr><th>الاسم</th><th>الكود</th><th>الرتبة</th>${role==='admin'?'<th>X</th>':''}</tr>`;
-            agents?.forEach(d => h += `<tr><td>${d.name}</td><td>${d.code}</td><td>${d.rank || 'N/A'}</td>${role==='admin'?`<td><button onclick="delCloud('agents',${d.id},'agents')">X</button></td>`:''}</tr>`);
-            c.innerHTML = h + "</table>";
+        // 2. العمليات
+‏        async function renderOps(c) {
+‏            const res = await fetch(`${SB_URL}/operations?select=*`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>⚔️ إدارة العمليات</h3>`;
+‏            if(isAdmin) h += `
+‏                <input id="op1" placeholder="اسم العملية">
+‏                <input id="op2" placeholder="المكان">
+‏                <select id="op3"><option>حالية</option><option>قادمة</option><option>سابقة</option></select>
+‏                <textarea id="op4" placeholder="تفاصيل العملية"></textarea>
+‏                <button class="action-btn" onclick="addOp()">تنشيط العملية</button>`;
+‏            h += `<table><tr><th>العملية</th><th>الحالة</th><th>إدارة</th></tr>`;
+‏            data.forEach(d => h += `<tr><td><b>${d.name}</b><br><small>${d.place}</small></td><td>${d.status}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('operations',${d.id})">حذف</button>` : 'عرض'}</td></tr>`);
+‏            c.innerHTML = h + "</table>";
         }
-        async function addAgentCloud() {
-            await supabase.from('agents').insert([{ name: document.getElementById('an').value, code: document.getElementById('ac').value, rank: document.getElementById('ar').value }]);
-            showContent('agents');
-        }
-
-        // --- 📄 التقارير ---
-        async function renderReports(c) {
-            const { data: reports } = await supabase.from('reports').select('*').order('id', { ascending: false });
-            let h = `<h3>📄 أرشيف التقارير والصور</h3>
-                <div class="form-group">
-                    <input id="r-num" placeholder="رقم التقرير">
-                    <input id="r-img" placeholder="رابط صورة توضيحية">
-                    <textarea id="r-body" placeholder="محتوى التقرير التفصيلي..."></textarea>
-                    <button class="action-btn" onclick="addReportCloud()">رفع التقرير</button>
-                </div>`;
-            reports?.forEach(d => h += `<div class="report-card">
-                <div style="display:flex; justify-content:space-between">
-                    <small style="color:red">REPORT #${d.report_number}</small>
-                    <small style="color:#666">${d.date}</small>
-                </div>
-                <p><b>الكاتب:</b> ${d.author}</p>
-                <p>${d.content}</p>
-                ${d.image ? `<img src="${d.image}" style="max-width:100%; border:1px solid #333; margin-top:10px;">` : ''}
-                ${role==='admin'?`<br><button onclick="delCloud('reports',${d.id},'reports')" style="margin-top:10px">حذف التقرير</button>`:''}
-            </div>`);
-            c.innerHTML = h;
-        }
-        async function addReportCloud() {
-            await supabase.from('reports').insert([{ report_number: document.getElementById('r-num').value, content: document.getElementById('r-body').value, image: document.getElementById('r-img').value, author: currentUser, date: new Date().toLocaleString('ar-EG') }]);
-            showContent('reports');
+‏        async function addOp() {
+‏            await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('op1').value, place: document.getElementById('op2').value, status: document.getElementById('op3').value, details: document.getElementById('op4').value }) });
+‏            showContent('ops');
         }
 
-        // --- وظائف عامة ---
-        async function delCloud(table, id, type) {
-            if(role !== 'admin') return;
-            if(!confirm("تأكيد حذف البيانات نهائياً؟")) return;
-            await supabase.from(table).delete().eq('id', id);
-            showContent(type);
+        // 3. المطلوبين
+‏        async function renderWanted(c) {
+‏            const res = await fetch(`${SB_URL}/wanted?select=*`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>🚨 المطلوبين للعدالة</h3>`;
+‏            if(isAdmin) h += `<input id="w1" placeholder="الاسم"><input id="w2" placeholder="الحالة (خطر/مطلوب)"><input id="w3" placeholder="رابط الصورة"><input id="w4" placeholder="رقم التقرير"><textarea id="w5" placeholder="تفاصيل"></textarea><button class="action-btn" onclick="addWanted()">إضافة هدف</button>`;
+‏            h += `<table><tr><th>الهوية</th><th>الحالة</th><th>إدارة</th></tr>`;
+‏            data.forEach(d => h += `<tr><td><img src="${d.img_url}" class="wanted-img"><br>${d.name}</td><td>${d.status}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('wanted',${d.id})">حذف</button>` : '-'}</td></tr>`);
+‏            c.innerHTML = h + "</table>";
+        }
+‏        async function addWanted() {
+‏            await fetch(`${SB_URL}/wanted`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('w1').value, status: document.getElementById('w2').value, img_url: document.getElementById('w3').value, report_num: document.getElementById('w4').value, detail: document.getElementById('w5').value }) });
+‏            showContent('wanted');
         }
 
-        function renderMap(container) {
-            container.innerHTML = `<div style="text-align:center; border:1px solid var(--red); padding:10px; margin-bottom:10px;"><a href="https://gta-5-map.com/" target="_blank" class="action-btn" style="text-decoration:none; padding:10px 20px; width:auto; display:inline-block;">فتح الرادار المستقل</a></div><iframe src="https://gta-5-map.com/" style="width:100%; height:550px; border:2px solid var(--red);"></iframe>`;
+        // 4. المخبرين
+‏        async function renderIntel(c) {
+‏            const res = await fetch(`${SB_URL}/intel?select=*`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>🕵️ شبكة المخبرين</h3>`;
+‏            if(isAdmin) h += `<input id="i1" placeholder="الاسم"><input id="i2" placeholder="السكن"><input id="i3" placeholder="رقم الهاتف"><input id="i4" placeholder="الصورة"><textarea id="i5" placeholder="تفاصيل"></textarea><button class="action-btn" onclick="addIntel()">تسجيل مخبر</button>`;
+‏            h += `<table><tr><th>المخبر</th><th>بيانات</th><th>إدارة</th></tr>`;
+‏            data.forEach(d => h += `<tr><td><img src="${d.img_url}" class="wanted-img"><br>${d.name}</td><td>📞 ${d.phone}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">حذف</button>` : '-'}</td></tr>`);
+‏            c.innerHTML = h + "</table>";
+        }
+‏        async function addIntel() {
+‏            await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('i1').value, residence: document.getElementById('i2').value, phone: document.getElementById('i3').value, img_url: document.getElementById('i4').value, detail: document.getElementById('i5').value }) });
+‏            showContent('intel');
         }
 
-        async function renderLogs(c) {
-            const { data: logs } = await supabase.from('logs').select('*').order('id', { ascending: false });
-            let h = `<h3>📊 سجلات الدخول</h3>`;
-            logs?.forEach(x => h += `<div style="border-bottom:1px solid #222; padding:8px; font-size:12px;">${x.username} | ${x.date}</div>`);
-            c.innerHTML = h;
+        // 5. العملاء
+‏        async function renderAgents(c) {
+‏            const res = await fetch(`${SB_URL}/agents?select=*`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>🎖️ سجل العملاء</h3>`;
+‏            if(isAdmin) h += `<input id="a1" placeholder="الاسم الكامل"><input id="a2" placeholder="الكود السري"><input id="a3" placeholder="الرتبة"><button class="action-btn" onclick="addAgent()">تعيين عميل</button>`;
+‏            h += `<table><tr><th>الاسم</th><th>الرتبة</th><th>إدارة</th></tr>`;
+‏            data.forEach(a => h += `<tr><td>${a.name}</td><td>${a.rank}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('agents',${a.id})">فصل</button>` : '-'}</td></tr>`);
+‏            c.innerHTML = h + "</table>";
+        }
+‏        async function addAgent() {
+‏            await fetch(`${SB_URL}/agents`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('a1').value, code: document.getElementById('a2').value, rank: document.getElementById('a3').value }) });
+‏            showContent('agents');
         }
 
-        async function renderAlerts(c) {
-            c.innerHTML = `<h3>⚠️ التنبيهات</h3><div style="border:1px solid yellow; padding:15px; text-align:center; color:yellow; font-size:13px;">النظام متصل بالسحابة. جميع الحقول الجديدة مفعلة.</div>`;
+        // 6. التقارير (مفتوحة للأفراد للإضافة)
+‏        async function renderReports(c) {
+‏            const res = await fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>📄 أرشيف التقارير الميدانية</h3>
+‏            <input id="r1" placeholder="رقم التقرير">
+‏            <input id="r3" placeholder="رابط الصورة المرفقة">
+‏            <textarea id="r2" placeholder="محتوى التقرير..."></textarea>
+‏            <button class="action-btn" onclick="addRep()">إرسال التقرير</button>`;
+‏            data.forEach(r => h += `
+‏                <div class="report-card">
+‏                    <b>#${r.report_num}</b> - كتب بواسطة: ${r.author} 
+‏                    ${isAdmin ? `<button class="del-btn" style="width:40px; display:inline;" onclick="deleteItem('reports',${r.id})">X</button>` : ''}
+‏                    <p>${r.content}</p>
+‏                    ${r.img_url ? `<img src="${r.img_url}" style="max-width:100%; border:1px solid #333;">` : ''}
+‏                    <br><small style="color:#555">${r.date_str}</small>
+‏                </div>`);
+‏            c.innerHTML = h;
         }
-    </script>
-</body>
-</html>
+‏        async function addRep() {
+‏            await fetch(`${SB_URL}/reports`, { method: 'POST', headers, body: JSON.stringify({ report_num: document.getElementById('r1').value, content: document.getElementById('r2').value, author: currentUser, img_url: document.getElementById('r3').value, date_str: new Date().toLocaleString('ar-EG') }) });
+‏            showContent('reports');
+        }
+
+        // 7. التنبيهات
+‏        async function renderAlerts(c) {
+‏            const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>⚠️ نظام التنبيهات العاجلة</h3>`;
+‏            if(isAdmin) h += `<input id="al1" placeholder="نص التنبيه"><button class="action-btn" onclick="addAlert()">بث تنبيه</button>`;
+‏            data.forEach(a => h += `<div class="report-card" style="border-right-color:orange; color:orange;"><b>عاجل:</b> ${a.text} ${isAdmin ? `<button class="del-btn" style="width:40px; display:inline;" onclick="deleteItem('alerts',${a.id})">X</button>` : ''}</div>`);
+‏            c.innerHTML = h;
+        }
+‏        async function addAlert() {
+‏            await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: document.getElementById('al1').value, date_str: new Date().toLocaleString('ar-EG') }) });
+‏            showContent('alerts');
+        }
+
+        // 8. السجلات (للمدير فقط)
+‏        async function renderLogs(c) {
+‏            const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers });
+‏            const data = await res.json();
+‏            let h = `<h3>📊 سجلات الولوج للنظام</h3>`;
+‏            data.forEach(l => h += `<div style="font-size:10px; border-bottom:1px solid #222; padding:5px;">[${l.entry_time}] - العميل: ${l.user_name} نجح في الدخول.</div>`);
+‏            c.innerHTML = h;
+        }
+‏    </script>
+‏</body>
+‏</html>
