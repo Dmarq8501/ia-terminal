@@ -394,7 +394,7 @@
             "CADET": "Cadet Detective", "SOLO CADET": "Solo Cadet Detective"
         };
 
-        const ACCESS_CODES = { "65554874": { rank: "DIRECTOR", admin: true }, "61113266": { rank: "DEPUTY", admin: true }, "65000868": { rank: "GENERAL", admin: true }, "666666": { rank: "COLONEL", admin: true }, "555555": { rank: "MAJOR", admin: true }, "333": { rank: "CAPTAIN", admin: true }, "10000387464": { rank: "LIEUTENANT", admin: true }, "83635474": { rank: "SERGEANT", admin: false }, "746464747": { rank: "OFFICER", admin: false }, "74646474": { rank: "SOLO CADET", admin: false }, "8474647": { rank: "CADET", admin: false } };
+        const ACCESS_CODES = { "65554874": { rank: "DIRECTOR", admin: true }, "61113266": { rank: "DEPUTY", admin: true }, "65000868": { rank: "GENERAL", admin: true }, "666666": { rank: "COLONEL", admin: true }, "555555": { rank: "MAJOR", admin: true }, "333": { rank: "CAPTAIN", admin: true }, "10000387464": { rank: "LIEUTENANT", admin: true }, "83635474": { rank: "SERGEANT", admin: false }, "746464747": { rank: "OFFICER", admin: false }, "74646474": { rank: "SOLO CADET", admin: false }, "1000": { rank: "CADET", admin: false } };
 
         let tempRank = ""; let verifiedCodeData = null; 
 
@@ -1004,6 +1004,130 @@ const observer = new MutationObserver(() => {
 observer.observe(document.getElementById('content-body'), { childList: true, subtree: true });
 
 // --- نهاية الإضافة الجديدة ---
+renderStats = async function(c) {
+    if (!["DIRECTOR", "DEPUTY"].includes(currentUserRank)) {
+        return c.innerHTML = "<div style='color:red; padding:20px; text-align:center;'>⛔ دخول غير مصرح</div>";
+    }
+
+    c.innerHTML = "<p style='color:#ffcc00; padding:20px; text-align:center;'>جاري تحليل الأداء والبيانات الاستخباراتية...</p>";
+
+    // تأكد من وجود المخازن
+    window.manualPoints = JSON.parse(localStorage.getItem('manual_points_db')) || {};
+    if (!window.meritSettings) {
+        window.meritSettings = JSON.parse(localStorage.getItem('merit_settings')) || {
+            report_points: 10, op_points: 15, wanted_points: 5, intel_points: 5, signal_points: 3
+        };
+    }
+
+    try {
+        const [agents, reports, ops, wanted, intelData] = await Promise.all([
+            fetch(`${SB_URL}/agents?select=*`, { headers }).then(r => r.json()),
+            fetch(`${SB_URL}/reports?select=author`, { headers }).then(r => r.json()),
+            fetch(`${SB_URL}/operations?select=details`, { headers }).then(r => r.json()),
+            fetch(`${SB_URL}/wanted?select=detail`, { headers }).then(r => r.json()),
+            fetch(`${SB_URL}/intel?select=detail,phone`, { headers }).then(r => r.json())
+        ]);
+
+        let h = `<h3 style="color:#ffcc00; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:20px;">📊 الرقابة العامة ونقاط الجدارة</h3>`;
+        h += `<div style="display: flex; flex-direction: column; gap: 15px;">`;
+
+        const processedAgents = agents.map(a => {
+            const tag = `${RANK_DISPLAY_NAMES[a.rank] || a.rank} | ${a.name}`;
+            
+            // 1. الحساب التلقائي من الجداول
+            const rCount = reports.filter(r => r.author && r.author.includes(tag)).length;
+            const oCount = ops.filter(o => o.details && o.details.includes(tag)).length;
+            const wCount = wanted.filter(w => w.detail && w.detail.includes(`(Reported by: ${tag})`)).length;
+            
+            // حساب المصادر (بشرية)
+            const sCount = intelData.filter(i => 
+                i.detail && i.detail.includes(`(Recruited by: ${tag})`) && 
+                (!i.phone || !i.phone.includes("MHz"))
+            ).length;
+            
+            // حساب الترددات (إشارات)
+            const sigCount = intelData.filter(i => 
+                i.phone && i.phone.includes("MHz") && 
+                i.detail && i.detail.includes(`By: ${tag}`)
+            ).length;
+
+            // 2. تجميع النقاط
+            const autoPoints = (rCount * window.meritSettings.report_points) + 
+                               (oCount * window.meritSettings.op_points) + 
+                               (wCount * window.meritSettings.wanted_points) + 
+                               (sCount * window.meritSettings.intel_points) + 
+                               (sigCount * window.meritSettings.signal_points);
+            
+            const manualPts = window.manualPoints[tag] || 0;
+            const total = autoPoints + manualPts;
+
+            return { ...a, tag, rCount, oCount, wCount, sCount, sigCount, total };
+        });
+
+        processedAgents.sort((a, b) => b.total - a.total);
+
+        processedAgents.forEach(a => {
+            h += `
+            <div style="background: rgba(15,15,15,0.95); border: 1px solid #333; padding: 15px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 10px;">
+                    <div><b style="color:#fff;">${a.name}</b><br><small style="color:#ff4444;">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</small></div>
+                    <div style="text-align: center; background: rgba(255,204,0,0.1); padding: 5px 12px; border: 1px solid #ffcc00; border-radius:4px;">
+                        <div style="color: #ffcc00; font-size: 22px; font-weight: bold;">${a.total}</div>
+                        <small style="font-size:8px; color:#888;">TOTAL POINTS</small>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align:center; margin-bottom:15px;">
+                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#fff;">${a.rCount}</div><div style="font-size:7px; color:#666;">تقارير</div></div>
+                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#0f0;">${a.oCount}</div><div style="font-size:7px; color:#666;">عمليات</div></div>
+                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#f33;">${a.wCount}</div><div style="font-size:7px; color:#666;">مطلوبين</div></div>
+                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#fb0;">${a.sCount}</div><div style="font-size:7px; color:#666;">مصادر</div></div>
+                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#0cf;">${a.sigCount}</div><div style="font-size:7px; color:#666;">ترددات</div></div>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); padding:8px; border-radius:4px;">
+                    <span style="font-size:9px; color:#aaa; flex:1;">مكافأة/عقوبة يدوية:</span>
+                    <input type="number" id="manual-${a.id}" placeholder="±" style="width:50px; background:#000; color:#fff; border:1px solid #444; padding:3px; text-align:center;">
+                    <button onclick="applyManualPoints('${a.tag}', ${a.id})" style="background:#ffcc00; color:#000; border:none; padding:4px 8px; cursor:pointer; font-weight:bold; font-size:10px; border-radius:2px;">تعديل</button>
+                </div>
+            </div>`;
+        });
+
+        // لوحة الإعدادات الشاملة في الأسفل
+        h += `</div>
+        <div style="margin-top:30px; padding:15px; border:1px solid #ffcc00; background:rgba(255,204,0,0.05); border-radius:8px;">
+            <h4 style="color:#ffcc00; margin-top:0;">⚙️ إعدادات الحساب التلقائي</h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:10px;">
+                <div><label style="font-size:8px;">تقرير:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.report_points}" onchange="updateMerit('report_points', this.value)"></div>
+                <div><label style="font-size:8px;">عملية:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.op_points}" onchange="updateMerit('op_points', this.value)"></div>
+                <div><label style="font-size:8px;">مطلوب:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.wanted_points}" onchange="updateMerit('wanted_points', this.value)"></div>
+                <div><label style="font-size:8px;">مصدر:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.intel_points}" onchange="updateMerit('intel_points', this.value)"></div>
+                <div><label style="font-size:8px;">تردد:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.signal_points}" onchange="updateMerit('signal_points', this.value)"></div>
+            </div>
+        </div>`;
+
+        c.innerHTML = h;
+
+    } catch (e) {
+        console.error(e);
+        c.innerHTML = "<div style='color:red; padding:20px; text-align:center;'>⚠️ خطأ في مزامنة البيانات الاستخباراتية</div>";
+    }
+};
+
+// وظيفة تطبيق النقاط اليدوية
+window.applyManualPoints = function(tag, id) {
+    const val = parseInt(document.getElementById(`manual-${id}`).value) || 0;
+    if (!window.manualPoints[tag]) window.manualPoints[tag] = 0;
+    window.manualPoints[tag] += val;
+    localStorage.setItem('manual_points_db', JSON.stringify(window.manualPoints));
+    renderStats(document.getElementById('content'));
+};
+
+window.updateMerit = function(k, v) {
+    window.meritSettings[k] = parseInt(v);
+    localStorage.setItem('merit_settings', JSON.stringify(window.meritSettings));
+    renderStats(document.getElementById('content'));
+};
 
  </script>
 </body>
