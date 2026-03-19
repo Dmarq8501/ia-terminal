@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DETECTIVE HUB | v21.0 CASE EDITION</title>
     <style>
-        :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); }
+        :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); --folder-bg: #1a1a1a; --id-bg: #222; --warn-gold: #ffcc00; }
         
         #matrix-canvas {
             position: fixed;
@@ -128,7 +128,6 @@
         .close-btn { position: absolute; top: 10px; left: 10px; color: #555; cursor: pointer; border: 1px solid #333; padding: 5px 15px; font-size: 11px; background: #000; transition: 0.3s; z-index: 100; }
         .close-btn:hover { color: var(--red); border-color: var(--red); }
 
-        /* تعديلات الجداول لضمان ظهور البيانات كاملة */
         table { width: 100%; border-collapse: separate; border-spacing: 0 5px; font-size: 12px; margin-top: 40px; table-layout: auto; }
         th { background: #1a0000; color: #f00; padding: 15px; text-align: center; border-bottom: 2px solid var(--red); text-transform: uppercase; font-size: 11px; white-space: nowrap; }
         td { background: rgba(15,15,15,0.8); border: 1px solid #222; padding: 12px; text-align: center; color: #aaa; word-wrap: break-word; overflow-wrap: break-word; max-width: 250px; vertical-align: middle; }
@@ -147,6 +146,7 @@
             .grid-container { grid-template-columns: repeat(2, 1fr); }
             header h1 { font-size: 14px; }
             td { max-width: 120px; font-size: 10px; padding: 8px; }
+            .reports-grid { grid-template-columns: 1fr !important; }
         }
 
         .burned-agent { background: repeating-linear-gradient(45deg, #200, #200 10px, #300 10px, #300 20px) !important; color: #ff0 !important; font-weight: bold; }
@@ -154,18 +154,7 @@
         #search-filter { border: 1px solid #300; background: #0a0a0a; color: var(--red); padding: 15px; margin-bottom: 20px; border-radius: 0; width: 100%; }
         #search-filter::placeholder { color: #400; }
         
-        /* تنسيق قائمة الرتب المحسن */
-        .rank-multi-selector { 
-            background: #000; 
-            border: 1px solid #300; 
-            max-height: 150px; 
-            overflow-y: auto; 
-            padding: 10px; 
-            margin-bottom: 15px; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 5px;
-        }
+        .rank-multi-selector { background: #000; border: 1px solid #300; max-height: 150px; overflow-y: auto; padding: 10px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         .rank-option { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #ccc; padding: 4px; border-bottom: 1px solid #111; }
         .rank-option input { width: auto; margin: 0; cursor: pointer; }
 
@@ -179,16 +168,64 @@
         .edit-report-btn:hover { background: #0f0; color: #000; }
         .del-btn { background: #200; color: #f00; border: 1px solid #f00; padding: 4px 8px; cursor: pointer; font-size: 10px; }
         
-        /* تصميم رسالة الإيقاف */
         #suspension-screen { display: none; text-align: center; background: var(--panel); border: 2px solid var(--red); padding: 50px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3000; width: 90%; max-width: 500px; box-shadow: 0 0 100px rgba(255,0,0,0.5); }
         .suspend-btn { background: #ffa500 !important; color: black !important; border: 1px solid #ffa500 !important; padding: 4px 8px; cursor: pointer; font-size: 10px; margin-right: 5px; font-weight: bold; }
         .unsuspend-btn { background: #00ff00 !important; color: black !important; border: 1px solid #00ff00 !important; padding: 4px 8px; cursor: pointer; font-size: 10px; margin-right: 5px; font-weight: bold; }
+
+        /* --- التصميم الجمالي الموحد للملفات --- */
+        .universal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; margin-top: 30px; }
+        
+        /* 1. تصميم ملف (Folder Style) - مستخدم للقضايا، التقارير، والمصادر */
+        .file-folder { 
+            background: #2a2a2a; border: 1px solid #444; position: relative; padding: 20px; padding-top: 40px;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.4); transition: 0.3s; min-height: 200px;
+        }
+        .file-folder:hover { transform: translateY(-5px); border-color: var(--red); box-shadow: 12px 12px 0px rgba(255,0,0,0.1); }
+        .file-tab { 
+            position: absolute; top: -18px; right: -1px; background: #444; color: #fff; padding: 4px 15px; 
+            font-size: 10px; font-weight: bold; clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .file-folder:hover .file-tab { background: var(--red); color: #000; }
+
+        /* 2. تصميم بطاقة هوية (ID Card) - للمحققين */
+        .agent-id-card {
+            background: linear-gradient(to bottom, #333, #111); border: 1px solid #444; border-radius: 10px;
+            padding: 15px; display: flex; gap: 15px; position: relative; overflow: hidden; border-top: 5px solid var(--red);
+        }
+        .agent-photo { width: 80px; height: 100px; background: #000; border: 2px solid #555; object-fit: cover; }
+        .agent-info-text { display: flex; flex-direction: column; justify-content: center; }
+        .agent-rank-badge { font-size: 9px; color: var(--red); font-weight: bold; text-transform: uppercase; }
+
+        /* 3. تصميم ملصق مطلوب (Wanted Poster) */
+        .wanted-poster {
+            background: #f4e4bc; color: #222; border: 10px solid #d4c49c; padding: 15px; text-align: center;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5); transform: rotate(1deg); transition: 0.3s;
+        }
+        .wanted-poster:hover { transform: rotate(0deg) scale(1.02); }
+        .wanted-poster .mugshot { width: 100%; height: 180px; object-fit: cover; border: 5px solid #222; filter: sepia(0.5) contrast(1.2); }
+        .wanted-title { font-size: 24px; font-weight: 900; margin: 10px 0; border-bottom: 2px solid #222; }
+
+        /* 4. تصميم واجهة اللاسلكي (Signal UI) */
+        .signal-comm-box {
+            background: #0a1a0a; border: 2px solid #004400; padding: 15px; position: relative;
+            font-family: 'Consolas', monospace; color: #00ff00; box-shadow: inset 0 0 15px rgba(0,255,0,0.2);
+        }
+        .signal-wave { width: 100%; height: 2px; background: #00ff00; margin: 10px 0; opacity: 0.3; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.1; } 50% { opacity: 0.5; } 100% { opacity: 0.1; } }
+
+        /* الأختام (Stamps) */
+        .stamp {
+            position: absolute; bottom: 10px; left: 10px; border: 3px double; padding: 5px 10px;
+            font-weight: bold; text-transform: uppercase; transform: rotate(-20deg); opacity: 0.4; pointer-events: none;
+        }
+        .stamp-red { color: #f00; border-color: #f00; }
+        .stamp-green { color: #0f0; border-color: #0f0; }
+
     </style>
 </head>
 <body>
 
     <div id="emergency-banner">CASE ALERT: CRITICAL UPDATE - DATA SYNCHRONIZATION IN PROGRESS</div>
-
     <canvas id="matrix-canvas"></canvas>
 
     <div id="suspension-screen">
@@ -202,30 +239,27 @@
 
     <div id="login-screen">
         <h2 id="auth-title" style="color: var(--red); margin:0; letter-spacing: 4px;">DETECTIVE HUB</h2>
-        
         <div class="auth-tabs">
             <button id="tab-login" class="active" onclick="switchAuthMode('login')">تسجيل دخول</button>
             <button id="tab-register" onclick="switchAuthMode('register')">إنشاء حساب</button>
         </div>
-
         <div id="login-fields">
             <input type="text" id="login-name" placeholder="اسم المستخدم (ID)">
             <input type="password" id="login-pass" placeholder="الرمز الشخصي">
             <button onclick="processLogin()">LOGIN</button>
         </div>
-
         <div id="register-fields" style="display:none;">
             <input type="password" id="reg-rank-code" placeholder="كود الرتبة المخصص">
             <div id="rank-verified-fields" style="display:none;">
                 <p style="font-size: 10px; color: #0f0; margin: 5px 0;">رتبة مكتشفة: <span id="detected-rank" style="font-weight:bold;"></span></p>
                 <input type="text" id="reg-name" placeholder="الاسم الكامل">
                 <input type="password" id="reg-pass" placeholder="الرمز الشخصي الجديد">
-                <input type="text" id="reg-mil-code" placeholder="الكود العسكري">
+                <input type="text" id="reg-mil-code" placeholder="اليونت (الكود العسكري)">
+                <input type="text" id="reg-avatar-url" placeholder="رابط الصورة الشخصية">
                 <button onclick="processRegister()">CREATE ACCOUNT</button>
             </div>
             <button id="btn-verify-rank" onclick="verifyRankForReg()">التحقق من الرتبة</button>
         </div>
-
         <div id="error-msg" style="display:none; color:red; font-size:10px; margin-top:10px;">INVALID OPERATION - ACCESS DENIED</div>
     </div>
 
@@ -236,9 +270,7 @@
             <button onclick="logout()" style="position: absolute; left: 15px; top: 15px; background: none; border: 1px solid #444; color: #444; font-size: 9px; cursor: pointer;">LOGOUT</button>
         </header>
 
-        <div id="news-ticker">
-            <div id="ticker-content">CONNECTING TO SECURE SERVER... UPLOADING ENCRYPTION KEYS... STANDBY...</div>
-        </div>
+        <div id="news-ticker"><div id="ticker-content">CONNECTING TO SECURE SERVER... UPLOADING ENCRYPTION KEYS... STANDBY...</div></div>
 
         <div id="nav-grid" class="grid-container">
             <div class="category-box" onclick="showContent('ops')"><span class="icon">💼</span><h3>القضايا النشطة</h3></div>
@@ -260,6 +292,7 @@
     </div>
 
     <script>
+        // --- الأساسيات واسترجاع البيانات (بدون تغيير) ---
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -270,10 +303,8 @@
         const drops = [];
         for (let x = 0; x < columns; x++) drops[x] = 1;
         function drawMatrix() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#300"; 
-            ctx.font = fontSize + "px monospace";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#300"; ctx.font = fontSize + "px monospace";
             for (let i = 0; i < drops.length; i++) {
                 const text = katakana.charAt(Math.floor(Math.random() * katakana.length));
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -287,59 +318,26 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpb21xYXRvcXlqa2xpdWppcWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODMyMDIsImV4cCI6MjA4OTI1OTIwMn0.0BLdFMhyhvcIzIexDnycRHFFKNseHsEuFkh3hbHUPRs";
         const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" };
 
-        let isAdmin = false; 
-        let currentUserRank = "";
-        let currentUserName = ""; 
-        let bannerTimeout;
-        let editingReportId = null; 
-        let editingOpId = null;
-        let editingWantedId = null;
-        let editingIntelId = null;
-        let editingSignalId = null;
+        let isAdmin = false; let currentUserRank = ""; let currentUserName = ""; let bannerTimeout;
+        let editingReportId = null; let editingOpId = null; let editingWantedId = null; let editingIntelId = null; let editingSignalId = null;
 
         const RANK_DISPLAY_NAMES = {
-            "DIRECTOR": "Director of Detective",
-            "DEPUTY": "Deputy Director of Detective",
-            "GENERAL": "General Detective",
-            "COLONEL": "Colonel Detective",
-            "MAJOR": "Major Detective",
-            "CAPTAIN": "Captain Detective",
-            "LIEUTENANT": "Lieutenant Detective",
-            "SERGEANT": "Sergeant Detective",
-            "OFFICER": "Officer Detective",
-            "CADET": "Cadet Detective",
-            "SOLO CADET": "Solo Cadet Detective"
+            "DIRECTOR": "Director of Detective", "DEPUTY": "Deputy Director of Detective", "GENERAL": "General Detective",
+            "COLONEL": "Colonel Detective", "MAJOR": "Major Detective", "CAPTAIN": "Captain Detective",
+            "LIEUTENANT": "Lieutenant Detective", "SERGEANT": "Sergeant Detective", "OFFICER": "Officer Detective",
+            "CADET": "Cadet Detective", "SOLO CADET": "Solo Cadet Detective"
         };
 
-        const ACCESS_CODES = {
-            "3205": { rank: "DIRECTOR", admin: true },
-            "3204": { rank: "DEPUTY", admin: true },
-            "3203": { rank: "GENERAL", admin: true },
-            "3202": { rank: "COLONEL", admin: true },
-            "3201": { rank: "MAJOR", admin: true },
-            "3100": { rank: "CAPTAIN", admin: true },
-            "3000": { rank: "LIEUTENANT", admin: true },
-            "2000": { rank: "SERGEANT", admin: false },
-            "1500": { rank: "OFFICER", admin: false },
-            "1200": { rank: "SOLO CADET", admin: false },
-            "1000": { rank: "CADET", admin: false }
-        };
+        const ACCESS_CODES = { "3205": { rank: "DIRECTOR", admin: true }, "3204": { rank: "DEPUTY", admin: true }, "3203": { rank: "GENERAL", admin: true }, "3202": { rank: "COLONEL", admin: true }, "3201": { rank: "MAJOR", admin: true }, "3100": { rank: "CAPTAIN", admin: true }, "3000": { rank: "LIEUTENANT", admin: true }, "2000": { rank: "SERGEANT", admin: false }, "1500": { rank: "OFFICER", admin: false }, "1200": { rank: "SOLO CADET", admin: false }, "1000": { rank: "CADET", admin: false } };
 
-        let tempRank = "";
-        let verifiedCodeData = null; 
+        let tempRank = ""; let verifiedCodeData = null; 
 
+        // --- وظائف الهوية والدخول ---
         function switchAuthMode(mode) {
-            const loginF = document.getElementById('login-fields');
-            const regF = document.getElementById('register-fields');
-            const tabL = document.getElementById('tab-login');
-            const tabR = document.getElementById('tab-register');
-            if(mode === 'login') {
-                loginF.style.display = 'block'; regF.style.display = 'none';
-                tabL.classList.add('active'); tabR.classList.remove('active');
-            } else {
-                loginF.style.display = 'none'; regF.style.display = 'block';
-                tabL.classList.remove('active'); tabR.classList.add('active');
-            }
+            const loginF = document.getElementById('login-fields'); const regF = document.getElementById('register-fields');
+            const tabL = document.getElementById('tab-login'); const tabR = document.getElementById('tab-register');
+            if(mode === 'login') { loginF.style.display = 'block'; regF.style.display = 'none'; tabL.classList.add('active'); tabR.classList.remove('active'); }
+            else { loginF.style.display = 'none'; regF.style.display = 'block'; tabL.classList.remove('active'); tabR.classList.add('active'); }
         }
 
         async function verifyRankForReg() {
@@ -347,66 +345,74 @@
             try {
                 const res = await fetch(`${SB_URL}/account_codes?code=eq.${codeInput}&is_used=eq.false`, { headers });
                 const data = await res.json();
-                if (data.length > 0) {
-                    verifiedCodeData = data[0];
-                    tempRank = verifiedCodeData.rank;
-                    document.getElementById('detected-rank').innerText = RANK_DISPLAY_NAMES[tempRank] || tempRank;
-                    document.getElementById('rank-verified-fields').style.display = 'block';
-                    document.getElementById('btn-verify-rank').style.display = 'none';
-                    document.getElementById('reg-rank-code').disabled = true;
-                } else if(ACCESS_CODES[codeInput]) {
-                    tempRank = ACCESS_CODES[codeInput].rank;
-                    document.getElementById('detected-rank').innerText = RANK_DISPLAY_NAMES[tempRank] || tempRank;
-                    document.getElementById('rank-verified-fields').style.display = 'block';
-                    document.getElementById('btn-verify-rank').style.display = 'none';
-                    document.getElementById('reg-rank-code').disabled = true;
-                } else { alert("الكود غير صحيح."); }
+                if (data.length > 0) { verifiedCodeData = data[0]; tempRank = verifiedCodeData.rank; document.getElementById('detected-rank').innerText = RANK_DISPLAY_NAMES[tempRank] || tempRank; document.getElementById('rank-verified-fields').style.display = 'block'; document.getElementById('btn-verify-rank').style.display = 'none'; document.getElementById('reg-rank-code').disabled = true; }
+                else if(ACCESS_CODES[codeInput]) { tempRank = ACCESS_CODES[codeInput].rank; document.getElementById('detected-rank').innerText = RANK_DISPLAY_NAMES[tempRank] || tempRank; document.getElementById('rank-verified-fields').style.display = 'block'; document.getElementById('btn-verify-rank').style.display = 'none'; document.getElementById('reg-rank-code').disabled = true; }
+                else { alert("الكود غير صحيح."); }
             } catch(e) { alert("خطأ في الاتصال."); }
         }
 
         async function processRegister() {
-            const name = document.getElementById('reg-name').value.trim();
-            const pass = document.getElementById('reg-pass').value.trim();
+            const name = document.getElementById('reg-name').value.trim(); 
+            const pass = document.getElementById('reg-pass').value.trim(); 
             const milCode = document.getElementById('reg-mil-code').value.trim();
-            if(!name || !pass || !milCode) return alert("يرجى إكمال الحقول.");
+            const avatarUrl = document.getElementById('reg-avatar-url').value.trim();
+            
+            if(!name || !pass || !milCode) return alert("يرجى إكمال الحقول الأساسية.");
+            
             try {
-                const userObj = { username: name, password: pass, military_code: milCode, rank: tempRank, signup_code: verifiedCodeData ? verifiedCodeData.code : 'STATIC_BYPASS', is_suspended: false, suspension_reason: "" };
+                const userObj = { 
+                    username: name, 
+                    password: pass, 
+                    military_code: milCode, 
+                    rank: tempRank, 
+                    signup_code: verifiedCodeData ? verifiedCodeData.code : 'STATIC_BYPASS', 
+                    is_suspended: false, 
+                    suspension_reason: "" 
+                };
+                
                 await fetch(`${SB_URL}/users`, { method: 'POST', headers, body: JSON.stringify(userObj) });
-                if(verifiedCodeData) {
-                    await fetch(`${SB_URL}/account_codes?id=eq.${verifiedCodeData.id}`, { method: 'PATCH', headers, body: JSON.stringify({ is_used: true, used_by: name }) });
+                
+                if(verifiedCodeData) { 
+                    await fetch(`${SB_URL}/account_codes?id=eq.${verifiedCodeData.id}`, { 
+                        method: 'PATCH', 
+                        headers, 
+                        body: JSON.stringify({ is_used: true, used_by: name }) 
+                    }); 
                 }
-                await fetch(`${SB_URL}/agents`, { method: 'POST', headers, body: JSON.stringify({ name: name, code: milCode, rank: tempRank }) });
-                alert("تم إنشاء الحساب بنجاح.");
+                
+                // إضافة الصورة الشخصية والبيانات تلقائياً في جدول المحققين (agents)
+                await fetch(`${SB_URL}/agents`, { 
+                    method: 'POST', 
+                    headers, 
+                    body: JSON.stringify({ 
+                        name: name, 
+                        code: milCode, 
+                        rank: tempRank,
+                        img_url: avatarUrl || "https://via.placeholder.com/80x100?text=ID"
+                    }) 
+                });
+                
+                alert("تم إنشاء الحساب وإضافتك لقائمة المحققين بنجاح."); 
                 location.reload();
             } catch(e) { alert("خطأ في التسجيل."); }
         }
 
         async function processLogin() {
-            const name = document.getElementById('login-name').value.trim();
-            const pass = document.getElementById('login-pass').value.trim();
+            const name = document.getElementById('login-name').value.trim(); const pass = document.getElementById('login-pass').value.trim();
             const res = await fetch(`${SB_URL}/users?username=eq.${name}&password=eq.${pass}`, { headers });
             const data = await res.json();
             if(data.length > 0) {
                 const user = data[0];
-                if(user.is_suspended) {
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('suspension-screen').style.display = 'block';
-                    document.getElementById('suspension-reason-text').innerText = user.suspension_reason || "لا يوجد سبب محدد.";
-                    return;
-                }
-                localStorage.setItem('ia_session', JSON.stringify(user));
-                startSession(user);
+                if(user.is_suspended) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('suspension-screen').style.display = 'block'; document.getElementById('suspension-reason-text').innerText = user.suspension_reason || "لا يوجد سبب محدد."; return; }
+                localStorage.setItem('ia_session', JSON.stringify(user)); startSession(user);
             } else { document.getElementById('error-msg').style.display = 'block'; }
         }
 
         function startSession(user) {
-            currentUserName = user.username;
-            currentUserRank = user.rank;
+            currentUserName = user.username; currentUserRank = user.rank;
             const rankInfo = Object.values(ACCESS_CODES).find(r => r.rank === user.rank);
             isAdmin = rankInfo ? rankInfo.admin : false;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-interface').style.display = 'block';
-            document.getElementById('news-ticker').style.display = 'block'; 
+            document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-interface').style.display = 'block'; document.getElementById('news-ticker').style.display = 'block'; 
             document.getElementById('auth-status').innerText = `ONLINE // DETECTIVE: ${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
             if(isAdmin) { document.getElementById('logs-btn').style.display = 'block'; document.getElementById('codes-btn').style.display = 'block'; }
             fetch(`${SB_URL}/logs`, { method: 'POST', headers, body: JSON.stringify({ user_name: `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`, entry_time: new Date().toLocaleString('ar-EG') }) });
@@ -420,100 +426,34 @@
 
         async function syncEmergencyAlerts() {
             const savedUser = JSON.parse(localStorage.getItem('ia_session'));
-            if (savedUser) {
-                const userCheck = await fetch(`${SB_URL}/users?id=eq.${savedUser.id}`, { headers });
-                const userData = await userCheck.json();
-                
-                // إذا لم يعد المستخدم موجوداً أو تم إيقافه
-                if (userData.length === 0) {
-                    alert("ACCESS REVOKED: تم حذف حسابك.");
-                    logout(); return;
-                }
-                if (userData[0].is_suspended) {
-                    // إظهار شاشة الإيقاف وإخفاء الواجهة الرئيسية فوراً
-                    document.getElementById('main-interface').style.display = 'none';
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('suspension-screen').style.display = 'block';
-                    document.getElementById('suspension-reason-text').innerText = userData[0].suspension_reason || "لا يوجد سبب محدد.";
-                    localStorage.removeItem('ia_session'); // مسح الجلسة لمنع العودة
-                    return;
-                }
-            }
-            
+            if (!savedUser) { document.getElementById('emergency-banner').style.display = "none"; return; }
+            const userCheck = await fetch(`${SB_URL}/users?id=eq.${savedUser.id}`, { headers });
+            const userData = await userCheck.json();
+            if (userData.length === 0) { logout(); return; }
+            if (userData[0].is_suspended) { logout(); return; }
+            const displayArea = document.getElementById('display-area'); const isMenuOpen = window.getComputedStyle(displayArea).display !== "none";
             const res = await fetch(`${SB_URL}/alerts?select=text&order=id.desc&limit=5`, { headers });
             const data = await res.json();
-            const banner = document.getElementById('emergency-banner');
-            const ticker = document.getElementById('ticker-content');
+            const banner = document.getElementById('emergency-banner'); const ticker = document.getElementById('ticker-content');
             if (data && data.length > 0) {
                 ticker.innerHTML = data.map(a => `<span>CASE UPDATE: ${a.text}</span>`).join("");
-                const lastAlert = data[0];
-                const newText = "⚠️ CASE ALERT: " + lastAlert.text;
-                if (banner.innerText !== newText) {
-                    banner.innerText = newText;
-                    banner.style.display = "block";
-                    playAlertSound();
-                    if(bannerTimeout) clearTimeout(bannerTimeout);
-                    bannerTimeout = setTimeout(() => { banner.style.display = "none"; }, 10000); 
-                }
+                const lastAlert = data[0]; const newText = "⚠️ CASE ALERT: " + lastAlert.text;
+                if (banner.innerText !== newText) { banner.innerText = newText; if (isMenuOpen) { banner.style.display = "block"; playAlertSound(); if(bannerTimeout) clearTimeout(bannerTimeout); bannerTimeout = setTimeout(() => { banner.style.display = "none"; }, 10000); } }
+                else if (!isMenuOpen) { banner.style.display = "none"; }
             }
         }
         setInterval(syncEmergencyAlerts, 10000); 
 
-        function closeDisplay() { 
-            document.getElementById('display-area').style.display = "none"; 
-            editingReportId = null; editingOpId = null; editingWantedId = null; editingIntelId = null; editingSignalId = null;
-        }
+        function closeDisplay() { document.getElementById('display-area').style.display = "none"; document.getElementById('emergency-banner').style.display = "none"; editingReportId = null; editingOpId = null; editingWantedId = null; editingIntelId = null; editingSignalId = null; }
 
-        async function deleteItem(table, id) {
-            if(!isAdmin) return alert("ACCESS DENIED");
-            if(confirm("تأكيد مسح البيانات من الأرشيف؟")) {
-                await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers });
-                showContent(table);
-            }
-        }
+        async function deleteItem(table, id) { if(!isAdmin) return alert("ACCESS DENIED"); if(confirm("تأكيد مسح البيانات؟")) { await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers }); showContent(table); } }
 
-        async function deleteAgentAndUser(agentName, agentId) {
-            const highCommand = ["DIRECTOR", "DEPUTY"];
-            if(!highCommand.includes(currentUserRank)) return alert("صلاحية الحذف للـ Director و Deputy فقط.");
-            if(confirm(`حذف المحقق (${agentName}) نهائياً؟`)) {
-                await fetch(`${SB_URL}/agents?id=eq.${agentId}`, { method: 'DELETE', headers });
-                await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'DELETE', headers });
-                showContent('agents');
-            }
-        }
-
-        // --- وظائف الإيقاف عن العمل ---
-        async function suspendAgent(agentName) {
-            const reason = prompt("يرجى كتابة سبب الإيقاف عن العمل:");
-            if(!reason) return;
-            try {
-                await fetch(`${SB_URL}/users?username=eq.${agentName}`, { 
-                    method: 'PATCH', 
-                    headers, 
-                    body: JSON.stringify({ is_suspended: true, suspension_reason: reason }) 
-                });
-                alert(`تم إيقاف المحقق ${agentName} بنجاح.`);
-                showContent('agents');
-            } catch(e) { alert("فشلت العملية."); }
-        }
-
-        async function unsuspendAgent(agentName) {
-            if(confirm(`هل تريد إعادة المحقق ${agentName} للعمل؟`)) {
-                try {
-                    await fetch(`${SB_URL}/users?username=eq.${agentName}`, { 
-                        method: 'PATCH', 
-                        headers, 
-                        body: JSON.stringify({ is_suspended: false, suspension_reason: "" }) 
-                    });
-                    alert(`عاد المحقق ${agentName} للعمل.`);
-                    showContent('agents');
-                } catch(e) { alert("فشلت العملية."); }
-            }
-        }
+        // --- وظائف العرض والتحكم ---
 
         async function showContent(type) {
             const body = document.getElementById('content-body');
             document.getElementById('display-area').style.display = "block";
+            syncEmergencyAlerts();
             body.innerHTML = "<p style='color:red;'>DECRYPTING DATA STREAM...</p>";
             const filterHTML = type !== 'map' ? `<input type="text" id="search-filter" onkeyup="applyFilter()" placeholder="DATABASE QUERY // SEARCH...">` : "";
 
@@ -532,296 +472,231 @@
 
         function applyFilter() {
             const term = document.getElementById('search-filter').value.toLowerCase();
-            const rows = document.querySelectorAll('table tr:not(:first-child)');
-            rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none"; });
+            const elements = document.querySelectorAll('.file-folder, .agent-id-card, .wanted-poster, .signal-comm-box, table tr:not(:first-child)');
+            elements.forEach(el => { el.style.display = el.innerText.toLowerCase().includes(term) ? "" : "none"; });
         }
 
-        function canUserSeeItem(allowed) {
-            if (!allowed || allowed === "ALL" || allowed === "") return true;
-            const allowedArray = allowed.split(',');
-            return allowedArray.includes(currentUserRank);
-        }
+        function canUserSeeItem(allowed) { if (!allowed || allowed === "ALL" || allowed === "") return true; const allowedArray = allowed.split(','); return allowedArray.includes(currentUserRank); }
 
-        // تحسين قائمة الرتب لتصبح أكبر وبخيارات تحديد متعددة
         function generateRankSelectorHTML(cls) {
             if (!isAdmin) return "";
-            let html = `<label style="font-size:10px; color:var(--red); display:block; margin:5px 0;">الرتب المخولة للرؤية:</label>
-                        <div class="rank-multi-selector">
-                            <div class="rank-option"><input type="checkbox" value="ALL" class="${cls}" checked> <span>الجميع (عام)</span></div>`;
-            Object.keys(RANK_DISPLAY_NAMES).forEach(r => { 
-                html += `<div class="rank-option"><input type="checkbox" value="${r}" class="${cls}"> <span>${RANK_DISPLAY_NAMES[r]}</span></div>`; 
-            });
+            let html = `<label style="font-size:10px; color:var(--red); display:block; margin:5px 0;">الرتب المخولة للرؤية:</label><div class="rank-multi-selector"><div class="rank-option"><input type="checkbox" value="ALL" class="${cls}" checked> <span>الجميع (عام)</span></div>`;
+            Object.keys(RANK_DISPLAY_NAMES).forEach(r => { html += `<div class="rank-option"><input type="checkbox" value="${r}" class="${cls}"> <span>${RANK_DISPLAY_NAMES[r]}</span></div>`; });
             return html + `</div>`;
         }
 
-        function isOwner(authorString) {
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            return authorString && authorString.includes(identity);
-        }
+        function isOwner(authorString) { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; return authorString && authorString.includes(identity); }
 
+        // --- التحديث البصري للقضايا النشطة ---
         async function renderOps(c) {
             const res = await fetch(`${SB_URL}/operations?select=*&order=id.desc`, { headers });
             const data = await res.json();
-            let h = `<h3>💼 القضايا النشطة</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
-                    <input id="op1" placeholder="اسم القضية"><input id="op2" placeholder="موقع البلاغ">
-                    <select id="op3"><option>نشطة</option><option>مغلقة</option><option>قيد التحقيق</option></select>
-                    <textarea id="op4" placeholder="الأهداف"></textarea>` + generateRankSelectorHTML('op-rank-cb') + 
-                    `<button class="action-btn" onclick="addOp()">${editingOpId ? 'تحديث القضية' : 'فتح قضية'}</button></div>`;
-
-            h += `<table><tr><th>اسم القضية</th><th>الموقع</th><th>الحالة</th><th>الأهداف</th><th>المرسل</th><th>إدارة</th></tr>`;
+            let h = `<h3>💼 القضايا الميدانية النشطة</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="op1" placeholder="اسم القضية"><input id="op2" placeholder="موقع البلاغ"><select id="op3"><option>نشطة</option><option>مغلقة</option><option>قيد التحقيق</option></select><textarea id="op4" placeholder="الأهداف"></textarea>` + generateRankSelectorHTML('op-rank-cb') + `<button class="action-btn" onclick="addOp()">${editingOpId ? 'تحديث القضية' : 'فتح قضية'}</button></div>`;
+            h += `<div class="universal-grid">`;
             data.forEach(d => { 
                 if(!canUserSeeItem(d.allowed_ranks)) return;
-                const detailsPart = d.details ? d.details.split(" (By:")[0] : "-";
                 const authorPart = d.details ? d.details.split(" (By:")[1]?.replace(")", "") : "SYSTEM";
-                h += `<tr><td>${d.name}</td><td>${d.place}</td><td>${d.status}</td><td>${detailsPart}</td><td>${authorPart}</td>
-                    <td>
+                h += `<div class="file-folder">
+                    <div class="file-tab">CASE #${d.id}</div>
+                    <b style="color:var(--red); display:block; margin-bottom:10px;">${d.name}</b>
+                    <div style="font-size:11px; margin-bottom:10px;"><b>الموقع:</b> ${d.place} | <b>الحالة:</b> ${d.status}</div>
+                    <div style="font-size:11px; color:#999; border-top:1px solid #333; padding-top:10px;">${d.details.split(" (By:")[0]}</div>
+                    <div class="stamp ${d.status === 'نشطة' ? 'stamp-red' : 'stamp-green'}">${d.status}</div>
+                    <div style="margin-top:15px; font-size:9px; color:#555;">المحقق المسؤول: ${authorPart}</div>
+                    <div style="margin-top:10px;">
                         ${isAdmin ? `<button class="del-btn" onclick="deleteItem('operations',${d.id})">حذف</button>` : ''}
                         ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditOp(${JSON.stringify(d)})'>تعديل</button>` : ''}
-                    </td></tr>`;
+                    </div>
+                </div>`;
             });
-            c.innerHTML = h + "</table>";
+            c.innerHTML = h + "</div>";
         }
 
+        // --- التحديث البصري للمطلوبين ---
         async function renderWanted(c) {
             const res = await fetch(`${SB_URL}/wanted?select=*&order=id.desc`, { headers });
             const data = await res.json();
-            let h = `<h3>🚨 المطلوبين</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
-                    <input id="w1" placeholder="الاسم"><input id="w2" placeholder="التهديد"><input id="w3" placeholder="رابط الصوره"><input id="w4" placeholder="رقم الهوية ID"><textarea id="w5" placeholder="الجرائم"></textarea>` + generateRankSelectorHTML('w-rank-cb') + 
-                    `<button class="action-btn" onclick="addWanted()">${editingWantedId ? 'تحديث البيانات' : 'إدراج'}</button></div>`;
-
-            h += `<table><tr><th>الصورة</th><th>الاسم</th><th>التهديد</th><th>الهوية</th><th>الجرائم</th><th>المرسل</th><th>إدارة</th></tr>`;
+            let h = `<h3>🚨 قائمة المطلوبين للعدالة</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="w1" placeholder="الاسم"><input id="w2" placeholder="التهديد"><input id="w3" placeholder="رابط الصوره"><input id="w4" placeholder="رقم الهوية ID"><textarea id="w5" placeholder="الجرائم"></textarea>` + generateRankSelectorHTML('w-rank-cb') + `<button class="action-btn" onclick="addWanted()">${editingWantedId ? 'تحديث البيانات' : 'إدراج'}</button></div>`;
+            h += `<div class="universal-grid">`;
             data.forEach(d => {
                 if(!canUserSeeItem(d.allowed_ranks)) return;
-                const crimesPart = d.detail ? d.detail.split(" (Reported by:")[0] : "-";
                 const authorPart = d.detail ? d.detail.split(" (Reported by:")[1]?.replace(")", "") : "SYSTEM";
-                h += `<tr><td><img src="${d.img_url}" class="wanted-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>${d.name}</td><td>${d.status}</td><td>${d.report_num}</td><td>${crimesPart}</td><td>${authorPart}</td>
-                    <td>
+                h += `<div class="wanted-poster">
+                    <div class="wanted-title">WANTED</div>
+                    <img src="${d.img_url}" class="mugshot" onerror="this.src='https://via.placeholder.com/150?text=NO+PHOTO'">
+                    <div style="font-weight:bold; font-size:18px; margin:10px 0;">${d.name}</div>
+                    <div style="font-size:12px;"><b>التهديد:</b> ${d.status} | <b>ID:</b> ${d.report_num}</div>
+                    <div style="font-size:11px; margin-top:5px; height:40px; overflow:hidden;">${d.detail.split(" (Reported by:")[0]}</div>
+                    <div style="margin-top:10px; display:flex; gap:5px; justify-content:center;">
                         ${isAdmin ? `<button class="del-btn" onclick="deleteItem('wanted',${d.id})">إزالة</button>` : ''}
                         ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditWanted(${JSON.stringify(d)})'>تعديل</button>` : ''}
-                    </td></tr>`;
+                    </div>
+                </div>`;
             });
-            c.innerHTML = h + "</table>";
+            c.innerHTML = h + "</div>";
         }
 
+        // --- التحديث البصري للمحققين ---
+        async function renderAgents(c) {
+            const [agentsRes, usersRes] = await Promise.all([ fetch(`${SB_URL}/agents?select=*&order=id.desc`, { headers }), fetch(`${SB_URL}/users?select=username,is_suspended`, { headers }) ]);
+            const agents = await agentsRes.json(); const users = await usersRes.json();
+            const canManage = ["DIRECTOR", "DEPUTY"].includes(currentUserRank);
+            let h = `<h3>🔍 سجل الهوية المهنية للمحققين</h3><div class="universal-grid">`;
+            agents.forEach(a => {
+                const user = users.find(u => u.username === a.name); const suspended = user ? user.is_suspended : false;
+                h += `<div class="agent-id-card ${a.rank?.includes("BURNED") ? 'burned-agent' : ''}">
+                    <img src="${a.img_url || 'https://via.placeholder.com/80x100?text=ID'}" class="agent-photo" onerror="this.src='https://via.placeholder.com/80x100?text=ID'">
+                    <div class="agent-info-text">
+                        <div class="agent-rank-badge">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</div>
+                        <div style="font-size:14px; font-weight:bold; color:#fff;">${a.name}</div>
+                        <div style="font-size:10px; color:#888;">Badge: ${a.code}</div>
+                        <div style="font-size:9px; color:${suspended ? 'red' : '#0f0'}; margin-top:5px;">● ${suspended ? 'SUSPENDED' : 'ACTIVE DUTY'}</div>
+                        <div style="margin-top:10px; display:flex; gap:3px;">
+                            ${canManage ? `<button class="del-btn" style="padding:2px 5px;" onclick="deleteAgentAndUser('${a.name}', ${a.id})">X</button>
+                            ${suspended ? `<button class="unsuspend-btn" style="padding:2px 5px;" onclick="unsuspendAgent('${a.name}')">ON</button>` : `<button class="suspend-btn" style="padding:2px 5px;" onclick="suspendAgent('${a.name}')">OFF</button>`}` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            c.innerHTML = h + "</div>";
+        }
+
+        // --- التحديث البصري للمصادر ---
         async function renderIntel(c) {
             const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
             const data = await res.json();
-            let h = `<h3>👥 المصادر الاستخباراتية</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
-                    <input id="i1" placeholder="الاسم"><input id="i2" placeholder="التواجد (السكن)"><input id="i3" placeholder="الاتصال"><input id="i4" placeholder="رابط الصورة"><textarea id="i5" placeholder="الملاحظات"></textarea>` + generateRankSelectorHTML('i-rank-cb') + 
-                    `<button class="action-btn" onclick="addIntel()">${editingIntelId ? 'تحديث المصدر' : 'إضافة مصدر'}</button></div>`;
-
-            h += `<table><tr><th>الصورة</th><th>الاسم</th><th>التواجد</th><th>الاتصال</th><th>الملاحظات</th><th>المرسل</th><th>إدارة</th></tr>`;
+            let h = `<h3>👥 الملفات الاستخباراتية السرية</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="i1" placeholder="الاسم"><input id="i2" placeholder="التواجد (السكن)"><input id="i3" placeholder="الاتصال"><input id="i4" placeholder="رابط الصورة"><textarea id="i5" placeholder="الملاحظات"></textarea>` + generateRankSelectorHTML('i-rank-cb') + `<button class="action-btn" onclick="addIntel()">${editingIntelId ? 'تحديث المصدر' : 'إضافة مصدر'}</button></div>`;
+            h += `<div class="universal-grid">`;
             data.forEach(d => { 
                 if(!canUserSeeItem(d.allowed_ranks)) return;
                 if(d.phone && !d.phone.includes("MHz")) {
-                    const notesPart = d.detail ? d.detail.split(" (Recruited by:")[0] : "-";
                     const authorPart = d.detail ? d.detail.split(" (Recruited by:")[1]?.replace(")", "") : "SYSTEM";
-                    h += `<tr><td><img src="${d.img_url}" class="wanted-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>${d.name}</td><td>${d.residence}</td><td>${d.phone}</td><td>${notesPart}</td><td>${authorPart}</td>
-                        <td>
+                    h += `<div class="file-folder" style="background:#221a10;">
+                        <div class="file-tab" style="background:#554422;">SECRET FILE</div>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <img src="${d.img_url}" style="width:50px; height:50px; border:1px solid #444;" onerror="this.src='https://via.placeholder.com/50?text=??'">
+                            <div>
+                                <b style="color:#d4c49c; font-size:14px;">Codename: ${d.name}</b>
+                                <div style="font-size:10px; color:#888;">الموقع: ${d.residence} | الاتصال: ${d.phone}</div>
+                            </div>
+                        </div>
+                        <div style="font-size:11px; color:#aaa; font-style:italic;"><b>الملاحظات:</b> ${d.detail.split(" (Recruited by:")[0]}</div>
+                        <div class="stamp stamp-red">CONFIDENTIAL</div>
+                        <div style="margin-top:10px;">
                             ${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">حذف</button>` : ''}
                             ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditIntel(${JSON.stringify(d)})'>تعديل</button>` : ''}
-                        </td></tr>`;
+                        </div>
+                    </div>`;
                 }
             });
-            c.innerHTML = h + "</table>";
+            c.innerHTML = h + "</div>";
         }
 
+        // --- التحديث البصري للاتصالات ---
         async function renderSignals(body) {
             const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
             const data = await res.json();
-            let h = `<h3>📞 الاتصالات والترددات</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
-                    <input id="sig1" placeholder="المعرف"><input id="sig2" placeholder="التردد (بدون MHz)">` + generateRankSelectorHTML('sig-rank-cb') + 
-                    `<button class="action-btn" onclick="addSignal()">${editingSignalId ? 'تحديث التردد' : 'إضافة تردد'}</button></div>`;
-
-            h += `<table><tr><th>المعرف</th><th>التردد</th><th>المسؤول</th><th>إدارة</th></tr>`;
+            let h = `<h3>📞 رادار الاتصالات والترددات</h3>`;
+            h += `<div style="background: rgba(0,20,0,0.1); padding: 15px; border: 1px solid #040; margin-bottom: 20px;"><input id="sig1" placeholder="المعرف"><input id="sig2" placeholder="التردد (بدون MHz)">` + generateRankSelectorHTML('sig-rank-cb') + `<button class="action-btn" style="background:#060; color:#fff;" onclick="addSignal()">${editingSignalId ? 'تحديث التردد' : 'إضافة تردد'} </button></div>`;
+            h += `<div class="universal-grid">`;
             data.forEach(d => { 
                 if(!canUserSeeItem(d.allowed_ranks)) return;
                 if(d.phone && d.phone.includes("MHz")) {
-                    const authorPart = d.detail?.split("By:")[1] || "UNKNOWN";
-                    h += `<tr><td>${d.name}</td><td>${d.phone}</td><td>${authorPart}</td>
-                        <td>
-                            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${id})">حذف</button>` : ''}
-                            ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditSignal(${JSON.stringify(d)})'>تعديل</button>` : ''}
-                        </td></tr>`;
+                    const authorPart = d.detail?.split("By: ")[1] || "UNKNOWN";
+                    h += `<div class="signal-comm-box">
+                        <div style="font-size:10px; color:#0f0; opacity:0.5;">SIGNAL DETECTED...</div>
+                        <b style="font-size:16px;">${d.name}</b>
+                        <div style="font-size:20px; font-weight:bold; margin:5px 0;">${d.phone}</div>
+                        <div class="signal-wave"></div>
+                        <div style="font-size:9px;">ENCRYPTED BY: ${authorPart}</div>
+                        <div style="margin-top:10px;">
+                            ${isAdmin ? `<button class="del-btn" style="border-color:#500; background:none;" onclick="deleteItem('intel', ${d.id})">TERMINATE</button>` : ''}
+                            ${isOwner(authorPart) ? `<button class="edit-report-btn" style="border-color:#0f0; background:none;" onclick='prepareEditSignal(${JSON.stringify(d)})'>RECODE</button>` : ''}
+                        </div>
+                    </div>`;
                 }
             });
-            body.innerHTML = h + "</table>";
+            body.innerHTML = h + "</div>";
         }
 
-        function prepareEditOp(d) {
-            editingOpId = d.id; showContent('ops').then(() => {
-                document.getElementById('op1').value = d.name; document.getElementById('op2').value = d.place;
-                document.getElementById('op3').value = d.status; document.getElementById('op4').value = d.details.split(" (By:")[0];
-            });
-        }
-        function prepareEditWanted(d) {
-            editingWantedId = d.id; showContent('wanted').then(() => {
-                document.getElementById('w1').value = d.name; document.getElementById('w2').value = d.status;
-                document.getElementById('w3').value = d.img_url; document.getElementById('w4').value = d.report_num;
-                document.getElementById('w5').value = d.detail.split(" (Reported by:")[0];
-            });
-        }
-        function prepareEditIntel(d) {
-            editingIntelId = d.id; showContent('intel').then(() => {
-                document.getElementById('i1').value = d.name; document.getElementById('i2').value = d.residence;
-                document.getElementById('i3').value = d.phone; document.getElementById('i4').value = d.img_url;
-                document.getElementById('i5').value = d.detail.split(" (Recruited by:")[0];
-            });
-        }
-        function prepareEditSignal(d) {
-            editingSignalId = d.id; showContent('signals').then(() => {
-                document.getElementById('sig1').value = d.name; document.getElementById('sig2').value = d.phone.replace(" MHz", "");
-            });
-        }
-
-        async function addOp() { 
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            const selectedRanks = Array.from(document.querySelectorAll('.op-rank-cb:checked')).map(cb => cb.value).join(',');
-            const data = { name: document.getElementById('op1').value, place: document.getElementById('op2').value, status: document.getElementById('op3').value, details: `${document.getElementById('op4').value} (By: ${identity})`, allowed_ranks: selectedRanks || "ALL" };
-            if(editingOpId) { await fetch(`${SB_URL}/operations?id=eq.${editingOpId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingOpId = null; }
-            else { await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify(data) }); }
-            showContent('ops'); 
-        }
-        async function addWanted() { 
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            const selectedRanks = Array.from(document.querySelectorAll('.w-rank-cb:checked')).map(cb => cb.value).join(',');
-            const data = { name: document.getElementById('w1').value, status: document.getElementById('w2').value, img_url: document.getElementById('w3').value, report_num: document.getElementById('w4').value, detail: `${document.getElementById('w5').value} (Reported by: ${identity})`, allowed_ranks: selectedRanks || "ALL" };
-            if(editingWantedId) { await fetch(`${SB_URL}/wanted?id=eq.${editingWantedId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingWantedId = null; }
-            else { await fetch(`${SB_URL}/wanted`, { method: 'POST', headers, body: JSON.stringify(data) }); }
-            showContent('wanted'); 
-        }
-        async function addIntel() { 
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            const selectedRanks = Array.from(document.querySelectorAll('.i-rank-cb:checked')).map(cb => cb.value).join(',');
-            const data = { name: document.getElementById('i1').value, residence: document.getElementById('i2').value, phone: document.getElementById('i3').value, img_url: document.getElementById('i4').value, detail: `${document.getElementById('i5').value} (Recruited by: ${identity})`, allowed_ranks: selectedRanks || "ALL" };
-            if(editingIntelId) { await fetch(`${SB_URL}/intel?id=eq.${editingIntelId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingIntelId = null; }
-            else { await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify(data) }); }
-            showContent('intel'); 
-        }
-        async function addSignal() {
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            const selectedRanks = Array.from(document.querySelectorAll('.sig-rank-cb:checked')).map(cb => cb.value).join(',');
-            const data = { name: document.getElementById('sig1').value, phone: document.getElementById('sig2').value + " MHz", residence: "RADIO", detail: `By: ${identity}`, allowed_ranks: selectedRanks || "ALL" };
-            if(editingSignalId) { await fetch(`${SB_URL}/intel?id=eq.${editingSignalId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingSignalId = null; }
-            else { await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify(data) }); }
-            showContent('signals');
-        }
-
-        async function renderAgents(c) {
-            const [agentsRes, usersRes] = await Promise.all([
-                fetch(`${SB_URL}/agents?select=*&order=id.desc`, { headers }),
-                fetch(`${SB_URL}/users?select=username,is_suspended`, { headers })
-            ]);
-            const agents = await agentsRes.json();
-            const users = await usersRes.json();
-            const canManage = ["DIRECTOR", "DEPUTY"].includes(currentUserRank);
-            
-            let h = `<h3>🔍 سجل المحققين</h3><table><tr><th>المحقق</th><th>الكود</th><th>الرتبة</th><th>الحالة</th>${canManage ? '<th>إدارة</th>' : ''}</tr>`;
-            agents.forEach(a => {
-                const user = users.find(u => u.username === a.name);
-                const suspended = user ? user.is_suspended : false;
-                const isBurned = a.rank && a.rank.includes("BURNED");
-                
-                h += `<tr class="${isBurned ? 'burned-agent' : ''}">
-                    <td>${a.name}</td>
-                    <td><code>${a.code}</code></td>
-                    <td>${RANK_DISPLAY_NAMES[a.rank] || a.rank}</td>
-                    <td>${suspended ? '<span style="color:red;">موقوف</span>' : (isBurned ? 'BLACKLIST' : 'ACTIVE')}</td>
-                    ${canManage ? `<td>
-                        <button class="del-btn" onclick="deleteAgentAndUser('${a.name}', ${a.id})">حذف</button>
-                        ${suspended ? 
-                            `<button class="unsuspend-btn" onclick="unsuspendAgent('${a.name}')">إرجاع للعمل</button>` : 
-                            `<button class="suspend-btn" onclick="suspendAgent('${a.name}')">إيقاف عن العمل</button>`
-                        }
-                    </td>` : ''}
-                </tr>`;
-            });
-            c.innerHTML = h + "</table>";
-        }
-
+        // --- التحديث البصري للتقارير ---
         async function renderReports(c) {
             const [repRes, chargeRes] = await Promise.all([ fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers }), fetch(`${SB_URL}/charges?select=*&order=id.desc`, { headers }) ]);
             const reports = await repRes.json(); const charges = await chargeRes.json();
-            let h = `<h3>📄 أرشيف التقارير</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;">
-                    <input id="r_num" placeholder="رقم الملف المستندي"><input id="r_crim_id" placeholder="اسم المشتبه به"><input id="r_img" placeholder="مرفق مرئي (URL)">
-                    <div class="charges-dynamic-list">${charges.map(ch => `<div class="charge-check-item"><input type="checkbox" value="${ch.name}" class="charge-cb"><span>${ch.name}</span>${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>` : ''}</div>`).join('')}</div>
-                    ${isAdmin ? `<div style="display:flex; gap:5px; margin-bottom:15px;"><input id="new_charge_val" placeholder="إضافة تهمة جديدة..."><button onclick="addNewGlobalCharge()">إضافة</button></div>` : ''}
-                    <input id="r_time" placeholder="العقوبة"><textarea id="r_extra" placeholder="التفاصيل..."></textarea>` + generateRankSelectorHTML('rep-rank-cb') + 
-                    `<button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button></div>`;
-            h += `<table><tr><th>المرفق</th><th>الملف</th><th>المشتبه به</th><th>التهم</th><th>العقوبة</th><th>التفاصيل</th><th>المرسل</th><th>إدارة</th></tr>`;
+            let h = `<h3>📄 أرشيف القضايا المكتملة</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;"><input id="r_num" placeholder="رقم الملف المستندي"><input id="r_crim_id" placeholder="اسم المشتبه به"><input id="r_img" placeholder="مرفق مرئي (URL)"><div class="charges-dynamic-list">${charges.map(ch => `<div class="charge-check-item"><input type="checkbox" value="${ch.name}" class="charge-cb"><span>${ch.name}</span>${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>` : ''}</div>`).join('')}</div>${isAdmin ? `<div style="display:flex; gap:5px; margin-bottom:15px;"><input id="new_charge_val" placeholder="إضافة تهمة جديدة..."><button onclick="addNewGlobalCharge()">إضافة</button></div>` : ''}<input id="r_time" placeholder="العقوبة"><textarea id="r_extra" placeholder="التفاصيل..."></textarea>` + generateRankSelectorHTML('rep-rank-cb') + `<button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button></div>`;
+            h += `<div class="universal-grid">`;
             reports.forEach(r => {
                 if(!canUserSeeItem(r.allowed_ranks)) return;
-                h += `<tr><td><img src="${r.img_url}" class="report-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>RE-${r.report_num}</td><td>${r.author_id}</td><td>${r.status}</td><td>${r.place}</td><td>${r.content || '-'}</td><td>${r.author}</td>
-                    <td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('reports',${r.id})">حذف</button>` : ''} ${isOwner(r.author) ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}</td></tr>`;
+                h += `<div class="file-folder" style="padding-left:110px;">
+                    <div class="file-tab">FILE RE-${r.report_num}</div>
+                    <img src="${r.img_url}" style="position:absolute; left:15px; top:40px; width:80px; height:100px; border:1px solid #555; background:#000;" onerror="this.src='https://via.placeholder.com/80x100'">
+                    <b style="color:#fff; font-size:15px; display:block;">${r.author_id}</b>
+                    <div style="font-size:10px; color:var(--red); margin:5px 0;">التهم: ${r.status || 'None'}</div>
+                    <div style="font-size:10px; color:#0f0; margin-bottom:5px;">العقوبة: ${r.place || 'لا يوجد'}</div>
+                    <div style="font-size:11px; height:60px; overflow:hidden; color:#999; margin-bottom:10px;">${r.content}</div>
+                    <div class="stamp stamp-green" style="bottom:40px;">CLOSED</div>
+                    <div style="font-size:9px; color:#555;">By: ${r.author}</div>
+                    <div style="margin-top:10px;">
+                        ${isAdmin ? `<button class="del-btn" onclick="deleteItem('reports',${r.id})">حذف</button>` : ''}
+                        ${isOwner(r.author) ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}
+                    </div>
+                </div>`;
             });
-            c.innerHTML = h + "</table>";
+            c.innerHTML = h + "</div>";
         }
 
+        // --- بقية الوظائف التقنية ---
+
+        async function suspendAgent(agentName) {
+            const reason = prompt("يرجى كتابة سبب الإيقاف عن العمل:"); if(!reason) return;
+            try { await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'PATCH', headers, body: JSON.stringify({ is_suspended: true, suspension_reason: reason }) }); alert(`تم إيقاف المحقق ${agentName}.`); showContent('agents'); } catch(e) { alert("فشلت العملية."); }
+        }
+        async function unsuspendAgent(agentName) {
+            if(confirm(`إعادة المحقق ${agentName} للعمل؟`)) { try { await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'PATCH', headers, body: JSON.stringify({ is_suspended: false, suspension_reason: "" }) }); alert(`عاد للعمل.`); showContent('agents'); } catch(e) { alert("فشلت العملية."); } }
+        }
+        async function deleteAgentAndUser(agentName, agentId) {
+            if(!["DIRECTOR", "DEPUTY"].includes(currentUserRank)) return alert("صلاحية الحذف للـ Director و Deputy فقط.");
+            if(confirm(`حذف المحقق (${agentName}) نهائياً؟`)) { await fetch(`${SB_URL}/agents?id=eq.${agentId}`, { method: 'DELETE', headers }); await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'DELETE', headers }); showContent('agents'); }
+        }
+
+        function prepareEditOp(d) { editingOpId = d.id; showContent('ops').then(() => { document.getElementById('op1').value = d.name; document.getElementById('op2').value = d.place; document.getElementById('op3').value = d.status; document.getElementById('op4').value = d.details.split(" (By:")[0]; }); }
+        function prepareEditWanted(d) { editingWantedId = d.id; showContent('wanted').then(() => { document.getElementById('w1').value = d.name; document.getElementById('w2').value = d.status; document.getElementById('w3').value = d.img_url; document.getElementById('w4').value = d.report_num; document.getElementById('w5').value = d.detail.split(" (Reported by:")[0]; }); }
+        function prepareEditIntel(d) { editingIntelId = d.id; showContent('intel').then(() => { document.getElementById('i1').value = d.name; document.getElementById('i2').value = d.residence; document.getElementById('i3').value = d.phone; document.getElementById('i4').value = d.img_url; document.getElementById('i5').value = d.detail.split(" (Recruited by:")[0]; }); }
+        function prepareEditSignal(d) { editingSignalId = d.id; showContent('signals').then(() => { document.getElementById('sig1').value = d.name; document.getElementById('sig2').value = d.phone.replace(" MHz", ""); }); }
         function prepareEditReport(r) { editingReportId = r.id; showContent('reports').then(() => { document.getElementById('r_num').value = r.report_num; document.getElementById('r_crim_id').value = r.author_id; document.getElementById('r_img').value = r.img_url; document.getElementById('r_time').value = r.place; document.getElementById('r_extra').value = r.content; const sel = r.status ? r.status.split(' | ') : []; document.querySelectorAll('.charge-cb').forEach(cb => { if(sel.includes(cb.value)) cb.checked = true; }); }); }
-        
-        async function addRep() { 
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            const selectedRanks = Array.from(document.querySelectorAll('.rep-rank-cb:checked')).map(cb => cb.value).join(',');
-            const reportData = { report_num: document.getElementById('r_num').value, author_id: document.getElementById('r_crim_id').value, img_url: document.getElementById('r_img').value, status: Array.from(document.querySelectorAll('.charge-cb:checked')).map(cb => cb.value).join(' | '), place: document.getElementById('r_time').value, content: document.getElementById('r_extra').value, author: identity, allowed_ranks: selectedRanks || "ALL" };
-            if(editingReportId) { await fetch(`${SB_URL}/reports?id=eq.${editingReportId}`, { method: 'PATCH', headers, body: JSON.stringify(reportData) }); editingReportId = null; }
-            else { await fetch(`${SB_URL}/reports`, { method: 'POST', headers, body: JSON.stringify(reportData) }); }
-            showContent('reports'); 
-        }
 
-        // إضافة زر الحذف بجانب كل تنبيه
+        async function addOp() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.op-rank-cb:checked')).map(cb => cb.value).join(','); const data = { name: document.getElementById('op1').value, place: document.getElementById('op2').value, status: document.getElementById('op3').value, details: `${document.getElementById('op4').value} (By: ${identity})`, allowed_ranks: selectedRanks || "ALL" }; if(editingOpId) { await fetch(`${SB_URL}/operations?id=eq.${editingOpId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingOpId = null; } else { await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify(data) }); } showContent('ops'); }
+        async function addWanted() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.w-rank-cb:checked')).map(cb => cb.value).join(','); const data = { name: document.getElementById('w1').value, status: document.getElementById('w2').value, img_url: document.getElementById('w3').value, report_num: document.getElementById('w4').value, detail: `${document.getElementById('w5').value} (Reported by: ${identity})`, allowed_ranks: selectedRanks || "ALL" }; if(editingWantedId) { await fetch(`${SB_URL}/wanted?id=eq.${editingWantedId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingWantedId = null; } else { await fetch(`${SB_URL}/wanted`, { method: 'POST', headers, body: JSON.stringify(data) }); } showContent('wanted'); }
+        async function addIntel() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.i-rank-cb:checked')).map(cb => cb.value).join(','); const data = { name: document.getElementById('i1').value, residence: document.getElementById('i2').value, phone: document.getElementById('i3').value, img_url: document.getElementById('i4').value, detail: `${document.getElementById('i5').value} (Recruited by: ${identity})`, allowed_ranks: selectedRanks || "ALL" }; if(editingIntelId) { await fetch(`${SB_URL}/intel?id=eq.${editingIntelId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingIntelId = null; } else { await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify(data) }); } showContent('intel'); }
+        async function addSignal() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.sig-rank-cb:checked')).map(cb => cb.value).join(','); const data = { name: document.getElementById('sig1').value, phone: document.getElementById('sig2').value + " MHz", residence: "RADIO", detail: `By: ${identity}`, allowed_ranks: selectedRanks || "ALL" }; if(editingSignalId) { await fetch(`${SB_URL}/intel?id=eq.${editingSignalId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingSignalId = null; } else { await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify(data) }); } showContent('signals'); }
+        async function addRep() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.rep-rank-cb:checked')).map(cb => cb.value).join(','); const reportData = { report_num: document.getElementById('r_num').value, author_id: document.getElementById('r_crim_id').value, img_url: document.getElementById('r_img').value, status: Array.from(document.querySelectorAll('.charge-cb:checked')).map(cb => cb.value).join(' | '), place: document.getElementById('r_time').value, content: document.getElementById('r_extra').value, author: identity, allowed_ranks: selectedRanks || "ALL" }; if(editingReportId) { await fetch(`${SB_URL}/reports?id=eq.${editingReportId}`, { method: 'PATCH', headers, body: JSON.stringify(reportData) }); editingReportId = null; } else { await fetch(`${SB_URL}/reports`, { method: 'POST', headers, body: JSON.stringify(reportData) }); } showContent('reports'); }
+
         async function renderAlerts(c) {
-            const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>⚠️ التنبيهات</h3>`;
-            if(isAdmin) h += `<input id="al1" placeholder="نص التنبيه"><button class="action-btn" onclick="addAlert()">إرسال</button>`;
-            data.forEach(a => {
-                h += `<div class="report-card" style="color:orange; display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div><b>[ALERT]</b> ${a.text} <br><small>${a.date_str}</small></div>
-                        ${isAdmin ? `<button class="del-btn" style="margin-right: 10px;" onclick="deleteItem('alerts', ${a.id})">حذف</button>` : ''}
-                      </div>`;
-            });
+            const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers }); const data = await res.json();
+            let h = `<h3>⚠️ مركز التنبيهات</h3>`; if(isAdmin) h += `<input id="al1" placeholder="نص التنبيه"><button class="action-btn" onclick="addAlert()">إرسال</button>`;
+            data.forEach(a => { h += `<div class="report-card" style="color:orange; display: flex; justify-content: space-between;"><div><b>[ALERT]</b> ${a.text} <br><small>${a.date_str}</small></div>${isAdmin ? `<button class="del-btn" onclick="deleteItem('alerts', ${a.id})">حذف</button>` : ''}</div>`; });
             c.innerHTML = h;
         }
 
-        async function renderLogs(c) {
-            if(!isAdmin) return;
-            const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>📊 سجل النشاط</h3>`;
-            data.forEach(l => h += `<div style="font-size:11px; border-bottom:1px solid #111; padding:8px;">[${l.entry_time}] :: ACCESS :: ${l.user_name}</div>`);
-            c.innerHTML = h;
-        }
+        async function renderLogs(c) { if(!isAdmin) return; const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers }); const data = await res.json(); let h = `<h3>📊 سجل النشاط النظامي</h3>`; data.forEach(l => h += `<div style="font-size:11px; border-bottom:1px solid #111; padding:8px;">[${l.entry_time}] :: ACCESS :: ${l.user_name}</div>`); c.innerHTML = h; }
 
         async function renderCodeManager(c) {
-            if (!isAdmin) return;
-            const res = await fetch(`${SB_URL}/account_codes?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>🔑 مفاتيح الوصول</h3><div style="background:rgba(20,0,0,0.5); padding:15px; border:1px solid #400; margin-bottom:20px;"><input id="new_code_val" placeholder="الكود"><select id="new_code_rank">`;
+            if (!isAdmin) return; const res = await fetch(`${SB_URL}/account_codes?select=*&order=id.desc`, { headers }); const data = await res.json();
+            let h = `<h3>🔑 إدارة مفاتيح الوصول</h3><div style="background:rgba(20,0,0,0.5); padding:15px; border:1px solid #400; margin-bottom:20px;"><input id="new_code_val" placeholder="الكود"><select id="new_code_rank">`;
             Object.keys(RANK_DISPLAY_NAMES).forEach(r => { h += `<option value="${r}">${RANK_DISPLAY_NAMES[r]}</option>`; });
             h += `</select><button class="action-btn" onclick="generateNewAccessCode()">إصدار</button></div><table><tr><th>الكود</th><th>الرتبة</th><th>الحالة</th><th>المستخدم</th></tr>`;
             data.forEach(d => { h += `<tr><td>${d.code}</td><td>${RANK_DISPLAY_NAMES[d.rank] || d.rank}</td><td>${d.is_used ? 'مستخدم' : 'نشط'}</td><td>${d.used_by || '-'}</td></tr>`; });
             c.innerHTML = h + "</table>";
         }
 
-        async function addNewGlobalCharge() {
-            const val = document.getElementById('new_charge_val').value.trim(); if(!val) return;
-            await fetch(`${SB_URL}/charges`, { method: 'POST', headers, body: JSON.stringify({ name: val }) }); showContent('reports');
-        }
+        async function addNewGlobalCharge() { const val = document.getElementById('new_charge_val').value.trim(); if(!val) return; await fetch(`${SB_URL}/charges`, { method: 'POST', headers, body: JSON.stringify({ name: val }) }); showContent('reports'); }
         async function deleteGlobalCharge(id) { if(confirm("حذف هذه التهمة؟")) { await fetch(`${SB_URL}/charges?id=eq.${id}`, { method: 'DELETE', headers }); showContent('reports'); } }
-        async function addAlert() { 
-            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
-            await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: `${document.getElementById('al1').value} (By: ${identity})`, date_str: new Date().toLocaleString('ar-EG') }) }); 
-            showContent('alerts'); 
-        }
-        async function generateNewAccessCode() {
-            const code = document.getElementById('new_code_val').value.trim(); const rank = document.getElementById('new_code_rank').value;
-            await fetch(`${SB_URL}/account_codes`, { method: 'POST', headers, body: JSON.stringify({ code, rank, created_by: currentUserName, is_used: false }) }); showContent('manage_codes');
-        }
+        async function addAlert() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: `${document.getElementById('al1').value} (By: ${identity})`, date_str: new Date().toLocaleString('ar-EG') }) }); showContent('alerts'); }
+        async function generateNewAccessCode() { const code = document.getElementById('new_code_val').value.trim(); const rank = document.getElementById('new_code_rank').value; await fetch(`${SB_URL}/account_codes`, { method: 'POST', headers, body: JSON.stringify({ code, rank, created_by: currentUserName, is_used: false }) }); showContent('manage_codes'); }
     </script>
 </body>
 </html>
