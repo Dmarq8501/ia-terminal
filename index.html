@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA TERMINAL | v21.0 ELITE EDITION</title>
+    <title>DETECTIVE HUB | v21.0 CASE EDITION</title>
     <style>
         :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); }
         
@@ -62,7 +62,7 @@
         body { color: #ccc; font-family: 'Courier New', Courier, monospace; margin: 0; background-color: var(--bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
         #login-screen { align-self: center; text-align: center; border: 1px solid #400; padding: 50px 30px; background: var(--panel); width: 85%; max-width: 400px; box-shadow: var(--glow); z-index: 10; border-radius: 2px; position: relative; margin-top: 100px; }
-        #login-screen::before { content: "TOP SECRET"; position: absolute; top: -10px; right: 20px; background: var(--red); color: black; padding: 2px 10px; font-size: 10px; font-weight: bold; }
+        #login-screen::before { content: "CONFIDENTIAL"; position: absolute; top: -10px; right: 20px; background: var(--red); color: black; padding: 2px 10px; font-size: 10px; font-weight: bold; }
         
         #login-screen input { background: #000; border: 1px solid #300; color: var(--red); padding: 15px; width: 100%; margin-top: 15px; text-align: center; box-sizing: border-box; font-size: 16px; outline: none; border-radius: 0; }
         #login-screen button { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 12px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
@@ -76,7 +76,7 @@
         #main-interface { display: none; width: 100%; max-width: 1200px; padding: 20px; box-sizing: border-box; z-index: 5; }
         
         header { border-left: 5px solid var(--red); padding: 20px; text-align: right; margin-bottom: 30px; background: rgba(15,0,0,0.9); border-bottom: 1px solid #300; position: relative; }
-        header::after { content: "SECURE LINE ACTIVE"; position: absolute; bottom: 5px; left: 15px; font-size: 9px; color: #444; }
+        header::after { content: "CASE LINE ACTIVE"; position: absolute; bottom: 5px; left: 15px; font-size: 9px; color: #444; }
 
         .grid-container { 
             display: grid; 
@@ -124,13 +124,14 @@
         }
         .category-box:hover h3 { color: var(--red); }
 
-        #display-area { display: none; background: #080808; border: 1px solid #300; padding: 30px; position: relative; box-shadow: 0 0 50px rgba(0,0,0,1); min-height: 450px; margin-bottom: 50px; border-top: 4px solid var(--red); }
-        .close-btn { position: absolute; top: 10px; left: 10px; color: #555; cursor: pointer; border: 1px solid #333; padding: 5px 15px; font-size: 11px; background: #000; transition: 0.3s; }
+        #display-area { display: none; background: #080808; border: 1px solid #300; padding: 30px; position: relative; box-shadow: 0 0 50px rgba(0,0,0,1); min-height: 450px; margin-bottom: 50px; border-top: 4px solid var(--red); width: 100%; box-sizing: border-box; overflow-x: auto; }
+        .close-btn { position: absolute; top: 10px; left: 10px; color: #555; cursor: pointer; border: 1px solid #333; padding: 5px 15px; font-size: 11px; background: #000; transition: 0.3s; z-index: 100; }
         .close-btn:hover { color: var(--red); border-color: var(--red); }
 
-        table { width: 100%; border-collapse: separate; border-spacing: 0 5px; font-size: 12px; margin-top: 20px; }
-        th { background: #1a0000; color: #f00; padding: 15px; text-align: center; border-bottom: 2px solid var(--red); text-transform: uppercase; font-size: 11px; }
-        td { background: rgba(15,15,15,0.8); border: 1px solid #222; padding: 12px; text-align: center; color: #aaa; }
+        /* تعديلات الجداول لضمان ظهور البيانات كاملة */
+        table { width: 100%; border-collapse: separate; border-spacing: 0 5px; font-size: 12px; margin-top: 40px; table-layout: auto; }
+        th { background: #1a0000; color: #f00; padding: 15px; text-align: center; border-bottom: 2px solid var(--red); text-transform: uppercase; font-size: 11px; white-space: nowrap; }
+        td { background: rgba(15,15,15,0.8); border: 1px solid #222; padding: 12px; text-align: center; color: #aaa; word-wrap: break-word; overflow-wrap: break-word; max-width: 250px; vertical-align: middle; }
         tr:hover td { background: rgba(30,0,0,0.5); color: #fff; }
 
         input, textarea, select { width: 100%; background: #000; border: 1px solid #222; color: #eee; padding: 12px; margin-bottom: 10px; box-sizing: border-box; font-family: inherit; outline: none; }
@@ -138,41 +139,59 @@
         .action-btn { background: var(--red); color: #000; border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; letter-spacing: 2px; transition: 0.3s; }
         .action-btn:hover { background: #fff; }
 
-        .report-card { border: 1px solid #222; padding: 20px; margin-bottom: 15px; background: #050505; border-right: 4px solid var(--red); position: relative; }
+        .report-card { border: 1px solid #222; padding: 20px; margin-bottom: 15px; background: #050505; border-right: 4px solid var(--red); position: relative; word-wrap: break-word; }
         
-        .wanted-img, .report-img { width: 50px; height: 50px; object-fit: cover; border: 1px solid #400; border-radius: 2px; }
+        .wanted-img, .report-img { width: 60px; height: 60px; object-fit: cover; border: 1px solid #400; border-radius: 2px; }
 
         @media (max-width: 768px) {
             .grid-container { grid-template-columns: repeat(2, 1fr); }
             header h1 { font-size: 14px; }
+            td { max-width: 120px; font-size: 10px; padding: 8px; }
         }
 
         .burned-agent { background: repeating-linear-gradient(45deg, #200, #200 10px, #300 10px, #300 20px) !important; color: #ff0 !important; font-weight: bold; }
         
-        #search-filter { border: 1px solid #300; background: #0a0a0a; color: var(--red); padding: 15px; margin-bottom: 20px; border-radius: 0; }
+        #search-filter { border: 1px solid #300; background: #0a0a0a; color: var(--red); padding: 15px; margin-bottom: 20px; border-radius: 0; width: 100%; }
         #search-filter::placeholder { color: #400; }
         
-        /* تحسين مظهر القائمة المتعددة */
         select[multiple] { height: 120px; border: 1px solid #400; background: #000; color: #ccc; }
         select[multiple] option { padding: 8px; border-bottom: 1px solid #111; transition: 0.2s; }
         select[multiple] option:hover { background: #1a0000; }
         select[multiple] option:checked { background: var(--red) !important; color: black; font-weight: bold; }
 
-        /* ستايل خاص لمنطقة إضافة تهمة جديدة */
-        .charge-adder { display: flex; gap: 5px; margin-bottom: 10px; }
-        .charge-adder input { margin-bottom: 0; flex-grow: 1; border-color: #300; }
-        .charge-adder button { width: auto; padding: 0 20px; margin-top: 0; background: #300; color: var(--red); border: 1px solid var(--red); }
-        .charge-adder button:hover { background: var(--red); color: #000; }
+        .charges-dynamic-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; background: #050505; border: 1px solid #222; padding: 15px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; }
+        .charge-check-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #888; border-bottom: 1px solid #111; padding: 5px; }
+        .charge-check-item input { width: auto; margin: 0; cursor: pointer; }
+        .charge-check-item .del-charge-btn { margin-right: auto; color: #444; cursor: pointer; font-size: 10px; }
+        .charge-check-item .del-charge-btn:hover { color: var(--red); }
+        
+        .edit-report-btn { background: #222; color: #0f0; border: 1px solid #0f0; padding: 4px 8px; cursor: pointer; font-size: 10px; margin-left: 5px; }
+        .edit-report-btn:hover { background: #0f0; color: #000; }
+        .del-btn { background: #200; color: #f00; border: 1px solid #f00; padding: 4px 8px; cursor: pointer; font-size: 10px; }
+        
+        /* تصميم رسالة الإيقاف */
+        #suspension-screen { display: none; text-align: center; background: var(--panel); border: 2px solid var(--red); padding: 50px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3000; width: 90%; max-width: 500px; box-shadow: 0 0 100px rgba(255,0,0,0.5); }
+        .suspend-btn { background: #ffa500 !important; color: black !important; border: 1px solid #ffa500 !important; padding: 4px 8px; cursor: pointer; font-size: 10px; margin-right: 5px; font-weight: bold; }
+        .unsuspend-btn { background: #00ff00 !important; color: black !important; border: 1px solid #00ff00 !important; padding: 4px 8px; cursor: pointer; font-size: 10px; margin-right: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="emergency-banner">SYSTEM ALERT: CRITICAL THREAT DETECTED - DATA SYNCHRONIZATION IN PROGRESS</div>
+    <div id="emergency-banner">CASE ALERT: CRITICAL UPDATE - DATA SYNCHRONIZATION IN PROGRESS</div>
 
     <canvas id="matrix-canvas"></canvas>
 
+    <div id="suspension-screen">
+        <h1 style="color: var(--red); letter-spacing: 5px;">ACCOUNT SUSPENDED</h1>
+        <div style="border: 1px solid #444; padding: 20px; margin: 20px 0; background: #000;">
+            <p style="color: #888; font-size: 12px;">تم إيقافك عن العمل للسبب التالي:</p>
+            <p id="suspension-reason-text" style="color: #fff; font-size: 18px; font-weight: bold;"></p>
+        </div>
+        <button onclick="logout()" style="background:none; border: 1px solid var(--red); color: var(--red); padding: 10px 20px; cursor:pointer;">خروج من النظام</button>
+    </div>
+
     <div id="login-screen">
-        <h2 id="auth-title" style="color: var(--red); margin:0; letter-spacing: 4px;">IA TERMINAL</h2>
+        <h2 id="auth-title" style="color: var(--red); margin:0; letter-spacing: 4px;">DETECTIVE HUB</h2>
         
         <div class="auth-tabs">
             <button id="tab-login" class="active" onclick="switchAuthMode('login')">تسجيل دخول</button>
@@ -202,7 +221,7 @@
 
     <div id="main-interface">
         <header>
-            <h1 style="margin:0; color:var(--red); font-size: 22px; letter-spacing: 3px;">INTELLIGENCE AGENCY [v21.0-ELITE]</h1>
+            <h1 style="margin:0; color:var(--red); font-size: 22px; letter-spacing: 3px;">PRIVATE DETECTIVE SYSTEM [v21.0]</h1>
             <div id="auth-status" style="font-size: 10px; color: #00ff00; margin-top: 5px; font-family: monospace;"></div>
             <button onclick="logout()" style="position: absolute; left: 15px; top: 15px; background: none; border: 1px solid #444; color: #444; font-size: 9px; cursor: pointer;">LOGOUT</button>
         </header>
@@ -211,17 +230,17 @@
             <div id="ticker-content">CONNECTING TO SECURE SERVER... UPLOADING ENCRYPTION KEYS... STANDBY...</div>
         </div>
 
-        <div class="grid-container">
-            <div class="category-box" onclick="showContent('ops')"><span class="icon">⚔️</span><h3>العمليات الاستراتيجية</h3></div>
-            <div class="category-box" onclick="showContent('wanted')"><span class="icon">🚨</span><h3>قائمة الأهداف السيادية</h3></div>
-            <div class="category-box" onclick="showContent('agents')"><span class="icon">🎖️</span><h3>سجل الوكلاء الميدانيين</h3></div>
-            <div class="category-box" onclick="showContent('intel')"><span class="icon">🕵️</span><h3>أصول المعلومات (المخبرين)</h3></div>
-            <div class="category-box" onclick="showContent('reports')"><span class="icon">📄</span><h3>الأرشفة والتقارير</h3></div>
-            <div class="category-box" onclick="showContent('signals')"><span class="icon">📡</span><h3>اعتراض الإشارات</h3></div>
+        <div id="nav-grid" class="grid-container">
+            <div class="category-box" onclick="showContent('ops')"><span class="icon">💼</span><h3>القضايا النشطة</h3></div>
+            <div class="category-box" onclick="showContent('wanted')"><span class="icon">🚨</span><h3>المطلوبين</h3></div>
+            <div class="category-box" onclick="showContent('agents')"><span class="icon">🔍</span><h3>المحققين</h3></div>
+            <div class="category-box" onclick="showContent('intel')"><span class="icon">👥</span><h3>المصادر</h3></div>
+            <div class="category-box" onclick="showContent('reports')"><span class="icon">📄</span><h3>التقارير</h3></div>
+            <div class="category-box" onclick="showContent('signals')"><span class="icon">📞</span><h3>الاتصالات</h3></div>
             <div class="category-box" onclick="showContent('map')"><span class="icon">📍</span><h3>تحديد المواقع الجغرافية</h3></div>
-            <div id="logs-btn" class="category-box" onclick="showContent('logs')" style="display:none;"><span class="icon">📊</span><h3>سجلات النظام</h3></div>
+            <div id="logs-btn" class="category-box" onclick="showContent('logs')" style="display:none;"><span class="icon">📊</span><h3>سجل النشاط</h3></div>
             <div id="codes-btn" class="category-box" onclick="showContent('manage_codes')" style="display:none;"><span class="icon">🔑</span><h3>توليد مفاتيح الوصول</h3></div>
-            <div class="category-box" onclick="showContent('alerts')"><span class="icon">⚠️</span><h3>بروتوكولات التنبيه</h3></div>
+            <div class="category-box" onclick="showContent('alerts')"><span class="icon">⚠️</span><h3>التنبيهات</h3></div>
         </div>
 
         <div id="display-area">
@@ -262,6 +281,25 @@
         let currentUserRank = "";
         let currentUserName = ""; 
         let bannerTimeout;
+        let editingReportId = null; 
+        let editingOpId = null;
+        let editingWantedId = null;
+        let editingIntelId = null;
+        let editingSignalId = null;
+
+        const RANK_DISPLAY_NAMES = {
+            "DIRECTOR": "Director of Detective",
+            "DEPUTY": "Deputy Director of Detective",
+            "GENERAL": "General Detective",
+            "COLONEL": "Colonel Detective",
+            "MAJOR": "Major Detective",
+            "CAPTAIN": "Captain Detective",
+            "LIEUTENANT": "Lieutenant Detective",
+            "SERGEANT": "Sergeant Detective",
+            "OFFICER": "Officer Detective",
+            "CADET": "Cadet Detective",
+            "SOLO CADET": "Solo Cadet Detective"
+        };
 
         const ACCESS_CODES = {
             "3205": { rank: "DIRECTOR", admin: true },
@@ -277,8 +315,6 @@
             "1000": { rank: "CADET", admin: false }
         };
 
-        // --- نظام التوثيق والمستخدمين المتقدم ---
-
         let tempRank = "";
         let verifiedCodeData = null; 
 
@@ -287,155 +323,113 @@
             const regF = document.getElementById('register-fields');
             const tabL = document.getElementById('tab-login');
             const tabR = document.getElementById('tab-register');
-            
             if(mode === 'login') {
-                loginF.style.display = 'block';
-                regF.style.display = 'none';
-                tabL.classList.add('active');
-                tabR.classList.remove('active');
+                loginF.style.display = 'block'; regF.style.display = 'none';
+                tabL.classList.add('active'); tabR.classList.remove('active');
             } else {
-                loginF.style.display = 'none';
-                regF.style.display = 'block';
-                tabL.classList.remove('active');
-                tabR.classList.add('active');
+                loginF.style.display = 'none'; regF.style.display = 'block';
+                tabL.classList.remove('active'); tabR.classList.add('active');
             }
         }
 
         async function verifyRankForReg() {
             const codeInput = document.getElementById('reg-rank-code').value.trim();
-            
-            // البحث عن الكود في جدول account_codes مع شرط أنه غير مستخدم
             try {
                 const res = await fetch(`${SB_URL}/account_codes?code=eq.${codeInput}&is_used=eq.false`, { headers });
                 const data = await res.json();
-
                 if (data.length > 0) {
                     verifiedCodeData = data[0];
                     tempRank = verifiedCodeData.rank;
-                    document.getElementById('detected-rank').innerText = tempRank;
+                    document.getElementById('detected-rank').innerText = RANK_DISPLAY_NAMES[tempRank] || tempRank;
                     document.getElementById('rank-verified-fields').style.display = 'block';
                     document.getElementById('btn-verify-rank').style.display = 'none';
                     document.getElementById('reg-rank-code').disabled = true;
-                } else {
-                    // التحقق من الأكواد الافتراضية الثابتة (للطوارئ)
-                    if(ACCESS_CODES[codeInput]) {
-                        tempRank = ACCESS_CODES[codeInput].rank;
-                        document.getElementById('detected-rank').innerText = tempRank;
-                        document.getElementById('rank-verified-fields').style.display = 'block';
-                        document.getElementById('btn-verify-rank').style.display = 'none';
-                        document.getElementById('reg-rank-code').disabled = true;
-                    } else {
-                        alert("الكود غير صحيح أو تم استخدامه مسبقاً.");
-                    }
-                }
-            } catch(e) {
-                alert("خطأ في الاتصال بقاعدة البيانات.");
-            }
+                } else if(ACCESS_CODES[codeInput]) {
+                    tempRank = ACCESS_CODES[codeInput].rank;
+                    document.getElementById('detected-rank').innerText = RANK_DISPLAY_NAMES[tempRank] || tempRank;
+                    document.getElementById('rank-verified-fields').style.display = 'block';
+                    document.getElementById('btn-verify-rank').style.display = 'none';
+                    document.getElementById('reg-rank-code').disabled = true;
+                } else { alert("الكود غير صحيح."); }
+            } catch(e) { alert("خطأ في الاتصال."); }
         }
 
         async function processRegister() {
             const name = document.getElementById('reg-name').value.trim();
             const pass = document.getElementById('reg-pass').value.trim();
             const milCode = document.getElementById('reg-mil-code').value.trim();
-
             if(!name || !pass || !milCode) return alert("يرجى إكمال الحقول.");
-
             try {
-                // 1. إضافة للمستخدمين
-                const userObj = { 
-                    username: name, 
-                    password: pass, 
-                    military_code: milCode, 
-                    rank: tempRank,
-                    signup_code: verifiedCodeData ? verifiedCodeData.code : 'STATIC_BYPASS'
-                };
+                const userObj = { username: name, password: pass, military_code: milCode, rank: tempRank, signup_code: verifiedCodeData ? verifiedCodeData.code : 'STATIC_BYPASS', is_suspended: false, suspension_reason: "" };
                 await fetch(`${SB_URL}/users`, { method: 'POST', headers, body: JSON.stringify(userObj) });
-                
-                // 2. تحديث حالة الكود ليصبح مستخدماً (إذا لم يكن كوداً استاتيكياً)
                 if(verifiedCodeData) {
-                    await fetch(`${SB_URL}/account_codes?id=eq.${verifiedCodeData.id}`, { 
-                        method: 'PATCH', 
-                        headers, 
-                        body: JSON.stringify({ is_used: true, used_by: name }) 
-                    });
+                    await fetch(`${SB_URL}/account_codes?id=eq.${verifiedCodeData.id}`, { method: 'PATCH', headers, body: JSON.stringify({ is_used: true, used_by: name }) });
                 }
-
-                // 3. إضافة تلقائية لقائمة الوكلاء
                 await fetch(`${SB_URL}/agents`, { method: 'POST', headers, body: JSON.stringify({ name: name, code: milCode, rank: tempRank }) });
-                
-                alert("تم إنشاء الحساب واعتماده بنجاح.");
+                alert("تم إنشاء الحساب بنجاح.");
                 location.reload();
-            } catch(e) {
-                alert("خطأ في إنشاء الحساب (قد يكون الاسم مستخدماً).");
-            }
+            } catch(e) { alert("خطأ في التسجيل."); }
         }
 
         async function processLogin() {
             const name = document.getElementById('login-name').value.trim();
             const pass = document.getElementById('login-pass').value.trim();
-
             const res = await fetch(`${SB_URL}/users?username=eq.${name}&password=eq.${pass}`, { headers });
             const data = await res.json();
-
             if(data.length > 0) {
                 const user = data[0];
+                if(user.is_suspended) {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('suspension-screen').style.display = 'block';
+                    document.getElementById('suspension-reason-text').innerText = user.suspension_reason || "لا يوجد سبب محدد.";
+                    return;
+                }
                 localStorage.setItem('ia_session', JSON.stringify(user));
                 startSession(user);
-            } else {
-                document.getElementById('error-msg').style.display = 'block';
-            }
+            } else { document.getElementById('error-msg').style.display = 'block'; }
         }
 
         function startSession(user) {
             currentUserName = user.username;
             currentUserRank = user.rank;
-            
             const rankInfo = Object.values(ACCESS_CODES).find(r => r.rank === user.rank);
             isAdmin = rankInfo ? rankInfo.admin : false;
-
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-interface').style.display = 'block';
             document.getElementById('news-ticker').style.display = 'block'; 
-            document.getElementById('auth-status').innerText = `ONLINE // OPERATOR: ${currentUserRank} | ${currentUserName}`;
-            
-            if(isAdmin) {
-                document.getElementById('logs-btn').style.display = 'block';
-                document.getElementById('codes-btn').style.display = 'block';
-            }
-            
-            fetch(`${SB_URL}/logs`, { method: 'POST', headers, body: JSON.stringify({ user_name: `${currentUserRank} | ${currentUserName}`, entry_time: new Date().toLocaleString('ar-EG') }) });
-            
+            document.getElementById('auth-status').innerText = `ONLINE // DETECTIVE: ${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            if(isAdmin) { document.getElementById('logs-btn').style.display = 'block'; document.getElementById('codes-btn').style.display = 'block'; }
+            fetch(`${SB_URL}/logs`, { method: 'POST', headers, body: JSON.stringify({ user_name: `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`, entry_time: new Date().toLocaleString('ar-EG') }) });
             syncEmergencyAlerts();
         }
 
-        function logout() {
-            localStorage.removeItem('ia_session');
-            location.reload();
-        }
+        function logout() { localStorage.removeItem('ia_session'); location.reload(); }
+        window.onload = () => { const saved = localStorage.getItem('ia_session'); if(saved) startSession(JSON.parse(saved)); };
 
-        window.onload = () => {
-            const saved = localStorage.getItem('ia_session');
-            if(saved) startSession(JSON.parse(saved));
-        };
-
-        // --- دوال النظام الأساسية ---
-
-        function playAlertSound() {
-            const audio = new Audio('https://www.myinstants.com/sounds/emergency-alarm.mp3'); 
-            audio.volume = 0.2;
-            audio.play();
-        }
+        function playAlertSound() { const audio = new Audio('https://www.myinstants.com/sounds/emergency-alarm.mp3'); audio.volume = 0.2; audio.play(); }
 
         async function syncEmergencyAlerts() {
+            const savedUser = JSON.parse(localStorage.getItem('ia_session'));
+            if (savedUser) {
+                const userCheck = await fetch(`${SB_URL}/users?id=eq.${savedUser.id}`, { headers });
+                const userData = await userCheck.json();
+                if (userData.length === 0) {
+                    alert("ACCESS REVOKED: تم حذف حسابك.");
+                    logout(); return;
+                }
+                if (userData[0].is_suspended) {
+                    alert("لقد تم إيقافك عن العمل.");
+                    location.reload(); return;
+                }
+            }
             const res = await fetch(`${SB_URL}/alerts?select=text&order=id.desc&limit=5`, { headers });
             const data = await res.json();
             const banner = document.getElementById('emergency-banner');
             const ticker = document.getElementById('ticker-content');
-            
             if (data && data.length > 0) {
-                ticker.innerHTML = data.map(a => `<span>CONFIDENTIAL ALERT: ${a.text}</span>`).join("");
+                ticker.innerHTML = data.map(a => `<span>CASE UPDATE: ${a.text}</span>`).join("");
                 const lastAlert = data[0];
-                const newText = "⚠️ CRITICAL: " + lastAlert.text;
+                const newText = "⚠️ CASE ALERT: " + lastAlert.text;
                 if (banner.innerText !== newText) {
                     banner.innerText = newText;
                     banner.style.display = "block";
@@ -447,50 +441,62 @@
         }
         setInterval(syncEmergencyAlerts, 10000); 
 
-        function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
+        function closeDisplay() { 
+            document.getElementById('display-area').style.display = "none"; 
+            editingReportId = null; editingOpId = null; editingWantedId = null; editingIntelId = null; editingSignalId = null;
+        }
 
         async function deleteItem(table, id) {
-            if(!isAdmin) return alert("ACCESS DENIED: ADMIN PRIVILEGES REQUIRED");
+            if(!isAdmin) return alert("ACCESS DENIED");
             if(confirm("تأكيد مسح البيانات من الأرشيف؟")) {
                 await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers });
                 showContent(table);
             }
         }
 
-        async function deleteAgentPermanently(agentId, agentName) {
-            if(currentUserRank !== "DIRECTOR" && currentUserRank !== "DEPUTY") {
-                return alert("صلاحية الحذف النهائي للمدير والنائب فقط.");
-            }
-
-            if(confirm(`سيتم حذف الوكيل ${agentName} وحسابه نهائياً من النظام. هل أنت متأكد؟`)) {
+        async function deleteAgentAndUser(agentName, agentId) {
+            const highCommand = ["DIRECTOR", "DEPUTY"];
+            if(!highCommand.includes(currentUserRank)) return alert("صلاحية الحذف للـ Director و Deputy فقط.");
+            if(confirm(`حذف المحقق (${agentName}) نهائياً؟`)) {
                 await fetch(`${SB_URL}/agents?id=eq.${agentId}`, { method: 'DELETE', headers });
                 await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'DELETE', headers });
                 showContent('agents');
             }
         }
 
-        function applyFilter() {
-            const term = document.getElementById('search-filter').value.toLowerCase();
-            const rows = document.querySelectorAll('table tr:not(:first-child)');
-            const cards = document.querySelectorAll('.report-card');
-            rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none"; });
-            cards.forEach(card => { card.style.display = card.innerText.toLowerCase().includes(term) ? "" : "none"; });
+        // --- وظائف الإيقاف عن العمل ---
+        async function suspendAgent(agentName) {
+            const reason = prompt("يرجى كتابة سبب الإيقاف عن العمل:");
+            if(!reason) return;
+            try {
+                await fetch(`${SB_URL}/users?username=eq.${agentName}`, { 
+                    method: 'PATCH', 
+                    headers, 
+                    body: JSON.stringify({ is_suspended: true, suspension_reason: reason }) 
+                });
+                alert(`تم إيقاف المحقق ${agentName} بنجاح.`);
+                showContent('agents');
+            } catch(e) { alert("فشلت العملية."); }
         }
 
-        async function burnAgent(id, name) {
-            if (currentUserRank !== "DIRECTOR") return alert("فقط المدير (DIRECTOR) يملك صلاحية التصفية الأمنية.");
-            if (confirm(`إصدار أمر تصفية نهائي للوكيل: ${name}؟`)) {
-                const identity = `${currentUserRank} | ${currentUserName}`;
-                await fetch(`${SB_URL}/agents?id=eq.${id}`, { method: 'PATCH', headers, body: JSON.stringify({ rank: "⚠️ BURNED / EXPOSED" }) });
-                await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: `بروتوكول تصفية: العميل ${name} تم كشفه! (بواسطة ${identity})`, date_str: new Date().toLocaleString('ar-EG') }) });
-                showContent('agents');
+        async function unsuspendAgent(agentName) {
+            if(confirm(`هل تريد إعادة المحقق ${agentName} للعمل؟`)) {
+                try {
+                    await fetch(`${SB_URL}/users?username=eq.${agentName}`, { 
+                        method: 'PATCH', 
+                        headers, 
+                        body: JSON.stringify({ is_suspended: false, suspension_reason: "" }) 
+                    });
+                    alert(`عاد المحقق ${agentName} للعمل.`);
+                    showContent('agents');
+                } catch(e) { alert("فشلت العملية."); }
             }
         }
 
         async function showContent(type) {
             const body = document.getElementById('content-body');
             document.getElementById('display-area').style.display = "block";
-            body.innerHTML = "<p style='color:red; letter-spacing:2px;'>DECRYPTING DATA STREAM...</p>";
+            body.innerHTML = "<p style='color:red;'>DECRYPTING DATA STREAM...</p>";
             const filterHTML = type !== 'map' ? `<input type="text" id="search-filter" onkeyup="applyFilter()" placeholder="DATABASE QUERY // SEARCH...">` : "";
 
             if(type === 'ops') await renderOps(body);
@@ -503,299 +509,19 @@
             else if(type === 'manage_codes') await renderCodeManager(body);
             else if(type === 'map') body.innerHTML = `<iframe src="https://gta-5-map.com/" style="width: 100%; height: 500px; border: 1px solid #300;"></iframe>`;
             else if(type === 'signals') await renderSignals(body);
-            
             if(type !== 'map') body.insertAdjacentHTML('afterbegin', filterHTML);
         }
 
-        // --- دالة إدارة الأكواد الجديدة ---
-        async function renderCodeManager(c) {
-            if (!isAdmin) return;
-            const res = await fetch(`${SB_URL}/account_codes?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            
-            let h = `<h3>🔑 إدارة مفاتيح الوصول (Access Keys)</h3>`;
-            h += `<div style="background:rgba(20,0,0,0.5); padding:15px; border:1px solid #400; margin-bottom:20px;">
-                    <input id="new_code_val" placeholder="أدخل الكود السرّي">
-                    <select id="new_code_rank">`;
-            Object.values(ACCESS_CODES).forEach(r => { h += `<option value="${r.rank}">${r.rank}</option>`; });
-            h += `</select>
-                    <button class="action-btn" onclick="generateNewAccessCode()">إصدار الكود</button>
-                  </div>`;
-                  
-            h += `<table><tr><th>الكود</th><th>الرتبة</th><th>الحالة</th><th>المستخدم</th><th>بواسطة</th></tr>`;
-            data.forEach(d => {
-                const statusText = d.is_used ? `<span style="color:red;">مستخدم</span>` : `<span style="color:#0f0;">نشط</span>`;
-                h += `<tr>
-                        <td style="font-family:monospace; color:yellow;">${d.code}</td>
-                        <td>${d.rank}</td>
-                        <td>${statusText}</td>
-                        <td>${d.used_by || '-'}</td>
-                        <td>${d.created_by || 'SYSTEM'}</td>
-                      </tr>`;
-            });
-            c.innerHTML = h + "</table>";
+        function applyFilter() {
+            const term = document.getElementById('search-filter').value.toLowerCase();
+            const rows = document.querySelectorAll('table tr:not(:first-child)');
+            rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none"; });
         }
 
-        async function generateNewAccessCode() {
-            const code = document.getElementById('new_code_val').value.trim();
-            const rank = document.getElementById('new_code_rank').value;
-            const creator = `${currentUserRank} | ${currentUserName}`;
-
-            if(!code) return alert("يجب كتابة كود.");
-
-            await fetch(`${SB_URL}/account_codes`, { 
-                method: 'POST', 
-                headers, 
-                body: JSON.stringify({ code, rank, created_by: creator, is_used: false }) 
-            });
-            showContent('manage_codes');
-        }
-
-        async function renderSignals(body) {
-            const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>📡 ترددات البث المعترضة</h3><div class="frequency-line"></div>`;
-            if(isAdmin) h += `<input id="sig1" placeholder="النطاق"><input id="sig2" placeholder="التردد">` + generateRankSelectorHTML('s_ranks') + `<button class="action-btn" onclick="addSignal()">بث إشارة</button>`;
-            h += `<table><tr><th>المعرف</th><th>التردد</th><th>المسؤول</th><th>الحالة</th></tr>`;
-            data.forEach(d => { 
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                if(d.phone && d.phone.includes("MHz")) {
-                    const sender = d.detail && d.detail.includes("By:") ? d.detail.split("By:")[1] : "UNKNOWN";
-                    h += `<tr><td>${d.name}</td><td>${d.phone}</td><td style="color:#0f0;">${sender}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">TERMINATE</button>` : 'SECURE'}</td></tr>`;
-                }
-            });
-            body.innerHTML = h + "</table>";
-        }
-
-        async function renderOps(c) {
-            const res = await fetch(`${SB_URL}/operations?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>⚔️ ملفات العمليات الميدانية</h3>`;
-            if(isAdmin) h += `<input id="op1" placeholder="اسم العملية"><input id="op2" placeholder="موقع الانتشار"><select id="op3"><option>نشطة</option><option>مؤرشفة</option><option>قيد التخطيط</option></select><textarea id="op4" placeholder="الأهداف الاستراتيجية"></textarea>` + generateRankSelectorHTML('op_ranks') + `<button class="action-btn" onclick="addOp()">تأكيد العملية</button>`;
-            h += `<table><tr><th>العملية</th><th>الموقع</th><th>الحالة</th><th>التفاصيل</th><th>المشرف</th><th>إدارة</th></tr>`;
-            data.forEach(d => { 
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                if(d.details && !d.details.startsWith("TIMER:")) {
-                    const parts = d.details.split("(By:");
-                    const cleanDetail = parts[0];
-                    const sender = parts[1] ? parts[1].replace(")", "") : "CLASSIFIED";
-                    h += `<tr><td>${d.name}</td><td>${d.place}</td><td>${d.status}</td><td>${cleanDetail}</td><td style="color:cyan;">${sender}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('operations',${d.id})">مسح</button>` : '-'}</td></tr>`;
-                }
-            });
-            c.innerHTML = h + "</table>";
-        }
-
-        async function renderWanted(c) {
-            const res = await fetch(`${SB_URL}/wanted?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>🚨 أهداف الدرجة الأولى (HVT)</h3>`;
-            if(isAdmin) h += `<input id="w1" placeholder="الاسم"><input id="w2" placeholder="مستوى التهديد"><input id="w3" placeholder="رابط الملف المرئي"><input id="w4" placeholder="الرقم التعريفي"><textarea id="w5" placeholder="قائمة الجرائم"></textarea>` + generateRankSelectorHTML('w_ranks') + `<button class="action-btn" onclick="addWanted()">إدراج هدف</button>`;
-            h += `<table><tr><th>ID</th><th>الاسم</th><th>التهديد</th><th>الملف</th><th>التفاصيل</th><th>بواسطة</th><th>إدارة</th></tr>`;
-            data.forEach(d => {
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                const parts = d.detail ? d.detail.split("(Reported by:") : ["", "SYSTEM"];
-                const cleanDetail = parts[0];
-                const sender = parts[1] ? parts[1].replace(")", "") : "SYSTEM";
-                h += `<tr><td><img src="${d.img_url}" class="wanted-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>${d.name}</td><td style="color:red; font-weight:bold;">${d.status}</td><td>${d.report_num}</td><td>${cleanDetail}</td><td>${sender}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('wanted',${d.id})">إزالة</button>` : '-'}</td></tr>`;
-            });
-            c.innerHTML = h + "</table>";
-        }
-
-        async function renderIntel(c) {
-            const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>🕵️ شبكة الأصول والمخبرين</h3>`;
-            if(isAdmin) h += `<input id="i1" placeholder="الاسم الحركي"><input id="i2" placeholder="نطاق التواجد"><input id="i3" placeholder="قناة التواصل"><input id="i4" placeholder="صورة الملف"><textarea id="i5" placeholder="قيمة المعلومات"></textarea>` + generateRankSelectorHTML('i_ranks') + `<button class="action-btn" onclick="addIntel()">تجنيد أصل</button>`;
-            h += `<table><tr><th>الأصل</th><th>الاسم الحركي</th><th>النطاق</th><th>قناة التواصل</th><th>الملاحظات</th><th>المسؤول</th><th>إدارة</th></tr>`;
-            data.forEach(d => { 
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                if(d.phone && !d.phone.includes("MHz")) {
-                    const parts = d.detail ? d.detail.split("(Recruited by:") : ["", "SYSTEM"];
-                    const cleanDetail = parts[0];
-                    const sender = parts[1] ? parts[1].replace(")", "") : "SYSTEM";
-                    h += `<tr><td><img src="${d.img_url}" class="wanted-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>${d.name}</td><td>${d.residence}</td><td>${d.phone}</td><td>${cleanDetail}</td><td>${sender}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">شطب</button>` : '-'}</td></tr>`;
-                }
-            });
-            c.innerHTML = h + "</table>";
-        }
-
-        async function renderAgents(c) {
-            const res = await fetch(`${SB_URL}/agents?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>🎖️ قاعدة بيانات الوكلاء المعتمدين</h3>`;
-            if(isAdmin) h += `<input id="a1" placeholder="اسم الوكيل"><input id="a2" placeholder="كود التصريح"><input id="a3" placeholder="الرتبة العسكرية"><button class="action-btn" onclick="addAgent()">اعتماد وكيل</button>`;
-            h += `<table><tr><th>الوكيل</th><th>كود التصريح</th><th>الرتبة</th><th>الإجراءات</th></tr>`;
-            data.forEach(a => {
-                const isBurned = a.rank.includes("BURNED");
-                h += `<tr class="${isBurned ? 'burned-agent' : ''}">
-                    <td>${a.name}</td>
-                    <td><code>${a.code || '[HIDDEN]'}</code></td>
-                    <td>${a.rank}</td>
-                    <td>
-                        ${isAdmin ? `<button class="del-btn" onclick="deleteAgentPermanently(${a.id}, '${a.name}')">حذف نهائي</button>` : '-'} 
-                        ${(currentUserRank === "DIRECTOR" && !isBurned) ? `<button class="burn-btn" onclick="burnAgent(${a.id}, '${a.name}')">BURN</button>` : ''}
-                    </td>
-                </tr>`;
-            });
-            c.innerHTML = h + "</table>";
-        }
-
-        async function renderReports(c) {
-            const res = await fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>📄 أرشيف التقارير الاستخباراتية</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;">
-                    <input id="r_num" placeholder="رقم الملف المستندي">
-                    <input id="r_crim_id" placeholder="معرف الهدف">
-                    <input id="r_img" placeholder="مرفق مرئي (URL)">
-                    
-                    <label style="font-size:11px; color:var(--red); display:block; margin-bottom:5px;">إضافة تهمة جديدة (يدوي):</label>
-                    <div class="charge-adder">
-                        <input type="text" id="new_charge_input" placeholder="اكتب التهمة هنا...">
-                        <button onclick="addNewChargeToList()">إضافة للقائمة</button>
-                    </div>
-
-                    <label style="font-size:11px; color:var(--red); display:block; margin-bottom:5px;">قائمة التهم الاستخباراتية (تعدد اختيار):</label>
-                    <select id="r_charge_list" multiple>
-                        <option value="اختراق أنظمة حكومية">اختراق أنظمة حكومية</option>
-                        <option value="تسريب معلومات سرية">تسريب معلومات سرية</option>
-                        <option value="التجسس لصالح جهة خارجية">التجسس لصالح جهة خارجية</option>
-                        <option value="اختراق قواعد بيانات أمنية">اختراق قواعد بيانات أمنية</option>
-                        <option value="زرع برمجيات خبيثة">زرع برمجيات خبيثة</option>
-                        <option value="تعطيل أنظمة سيادية">تعطيل أنظمة سيادية</option>
-                        <option value="انتحال صفة جهة أمنية">انتحال صفة جهة أمنية</option>
-                        <option value="تجنيد مصادر غير قانونية">تجنيد مصادر غير قانونية</option>
-                        <option value="التلاعب بالأدلة الرقمية">التلاعب بالأدلة الرقمية</option>
-                        <option value="اختراق شبكات الاتصالات">اختراق شبكات الاتصالات</option>
-                        <option value="غسيل أموال إلكتروني">غسيل أموال إلكتروني</option>
-                        <option value="تمويل عمليات غير مشروعة">تمويل عمليات غير مشروعة</option>
-                        <option value="تخريب بنية تحتية رقمية">تخريب بنية تحتية رقمية</option>
-                        <option value="نشر معلومات مضللة">نشر معلومات مضللة</option>
-                        <option value="الوصول غير المصرح به لأنظمة عسكرية">الوصول غير المصرح به لأنظمة عسكرية</option>
-                        <option value="التلاعب بالبيانات الحكومية">التلاعب بالبيانات الحكومية</option>
-                        <option value="اختراق أنظمة المراقبة">اختراق أنظمة المراقبة</option>
-                        <option value="سرقة هويات رقمية">سرقة هويات رقمية</option>
-                        <option value="تجنيد عملاء سريين">تجنيد عملاء سريين</option>
-                        <option value="التواصل مع جهات معادية">التواصل مع جهات معادية</option>
-                    </select>
-
-                    <input id="r_time" placeholder="العقوبة المقررة">
-                    <textarea id="r_extra" placeholder="التقرير المفصل..."></textarea>` 
-                    + generateRankSelectorHTML('r_ranks') + 
-                    `<button class="action-btn" onclick="addRep()">حفظ التقرير</button>
-                </div>`;
-            h += `<table><tr><th>المرفق</th><th>رقم الملف</th><th>المعرف</th><th>التصنيف</th><th>العقوبة</th><th>التفاصيل</th><th>المحرر</th><th>إدارة</th></tr>`;
-            data.forEach(r => {
-                if(!canUserSeeItem(r.allowed_ranks)) return;
-                h += `<tr><td><img src="${r.img_url}" class="report-img" onerror="this.src='https://via.placeholder.com/60'"></td><td style="color:red">RE-${r.report_num}</td><td>${r.author_id}</td><td>${r.status}</td><td>${r.place}</td><td>${r.content}</td><td style="color:#0f0;">${r.author}</td><td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('reports',${r.id})">حذف</button>` : '-'}</td></tr>`;
-            });
-            c.innerHTML = h + "</table>";
-        }
-
-        function addNewChargeToList() {
-            const input = document.getElementById('new_charge_input');
-            const list = document.getElementById('r_charge_list');
-            const val = input.value.trim();
-            if(val !== "") {
-                const option = document.createElement('option');
-                option.value = val;
-                option.text = val;
-                option.selected = true;
-                list.prepend(option);
-                input.value = "";
-            }
-        }
-
-        async function renderAlerts(c) {
-            const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>⚠️ سجل بروتوكولات التنبيه العاجلة</h3>`;
-            if(isAdmin) h += `<input id="al1" placeholder="نص البلاغ العاجل"><button class="action-btn" onclick="addAlert()">بث عاجل</button>`;
-            data.forEach(a => h += `<div class="report-card" style="color:orange; border-color:#530;"><b>[ALERT]</b> ${a.text} <br><small>${a.date_str}</small>${isAdmin ? `<button class="del-btn" style="width:70px; display:inline-block; margin-right:15px;" onclick="deleteItem('alerts',${a.id})">إزالة</button>` : ''}</div>`);
-            c.innerHTML = h;
-        }
-
-        async function renderLogs(c) {
-            const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers });
-            const data = await res.json();
-            let h = `<h3>📊 سجلات الوصول للأرشيف المركزي</h3>`;
-            data.forEach(l => h += `<div style="font-size:11px; border-bottom:1px solid #111; padding:8px; font-family:monospace;">[${l.entry_time}] :: <span style="color:var(--red)">ACCESS_GRANTED</span> :: ${l.user_name}</div>`);
-            c.innerHTML = h;
-        }
-
-        async function addSignal() {
-            const identity = `${currentUserRank} | ${currentUserName}`;
-            const allowed = Array.from(document.getElementById('s_ranks').selectedOptions).map(o => o.value).join(',');
-            await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('sig1').value, phone: document.getElementById('sig2').value + " MHz", residence: "RADIO", detail: `By: ${identity}`, allowed_ranks: allowed }) });
-            document.getElementById('sig1').value = ""; document.getElementById('sig2').value = "";
-            showContent('signals');
-        }
-        async function addOp() { 
-            const identity = `${currentUserRank} | ${currentUserName}`;
-            const allowed = Array.from(document.getElementById('op_ranks').selectedOptions).map(o => o.value).join(',');
-            const details = `${document.getElementById('op4').value} (By: ${identity})`;
-            await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('op1').value, place: document.getElementById('op2').value, status: document.getElementById('op3').value, details: details, allowed_ranks: allowed }) }); 
-            document.getElementById('op1').value = ""; document.getElementById('op2').value = ""; document.getElementById('op4').value = "";
-            showContent('ops'); 
-        }
-        async function addWanted() { 
-            const identity = `${currentUserRank} | ${currentUserName}`;
-            const allowed = Array.from(document.getElementById('w_ranks').selectedOptions).map(o => o.value).join(',');
-            const detail = `${document.getElementById('w5').value} (Reported by: ${identity})`;
-            await fetch(`${SB_URL}/wanted`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('w1').value, status: document.getElementById('w2').value, img_url: document.getElementById('w3').value, report_num: document.getElementById('w4').value, detail: detail, allowed_ranks: allowed }) }); 
-            document.getElementById('w1').value = ""; document.getElementById('w2').value = ""; document.getElementById('w3').value = ""; document.getElementById('w4').value = ""; document.getElementById('w5').value = "";
-            showContent('wanted'); 
-        }
-        async function addIntel() { 
-            const identity = `${currentUserRank} | ${currentUserName}`;
-            const allowed = Array.from(document.getElementById('i_ranks').selectedOptions).map(o => o.value).join(',');
-            const detail = `${document.getElementById('i5').value} (Recruited by: ${identity})`;
-            await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('i1').value, residence: document.getElementById('i2').value, phone: document.getElementById('i3').value, img_url: document.getElementById('i4').value, detail: detail, allowed_ranks: allowed }) }); 
-            document.getElementById('i1').value = ""; document.getElementById('i2').value = ""; document.getElementById('i3').value = ""; document.getElementById('i4').value = ""; document.getElementById('i5').value = "";
-            showContent('intel'); 
-        }
-        async function addAgent() { 
-            await fetch(`${SB_URL}/agents`, { method: 'POST', headers, body: JSON.stringify({ name: document.getElementById('a1').value, code: document.getElementById('a2').value, rank: document.getElementById('a3').value }) }); 
-            document.getElementById('a1').value = ""; document.getElementById('a2').value = ""; document.getElementById('a3').value = "";
-            showContent('agents'); 
-        }
-        
-        async function addRep() { 
-            const fullIdentity = `${currentUserRank} | ${currentUserName}`;
-            const allowed = Array.from(document.getElementById('r_ranks').selectedOptions).map(o => o.value).join(',');
-            const selectedCharges = Array.from(document.getElementById('r_charge_list').selectedOptions).map(opt => opt.value);
-            const finalCharges = selectedCharges.join(' | ');
-            const reportData = {
-                report_num: document.getElementById('r_num').value,
-                author_id: document.getElementById('r_crim_id').value,
-                img_url: document.getElementById('r_img').value,
-                status: finalCharges,
-                place: document.getElementById('r_time').value,
-                content: document.getElementById('r_extra').value,
-                author: fullIdentity,
-                date_str: new Date().toLocaleString('ar-EG'),
-                allowed_ranks: allowed
-            };
-            if(selectedCharges.length === 0) return alert("الرجاء اختيار تهمة واحدة على الأقل.");
-            await fetch(`${SB_URL}/reports`, { method: 'POST', headers, body: JSON.stringify(reportData) }); 
-            document.getElementById('r_num').value = ""; document.getElementById('r_crim_id').value = ""; document.getElementById('r_img').value = ""; document.getElementById('r_time').value = ""; document.getElementById('r_extra').value = "";
-            showContent('reports'); 
-        }
-
-        async function addAlert() { 
-            const identity = `${currentUserRank} | ${currentUserName}`;
-            const text = `${document.getElementById('al1').value} (By: ${identity})`;
-            await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: text, date_str: new Date().toLocaleString('ar-EG') }) }); 
-            document.getElementById('al1').value = "";
-            syncEmergencyAlerts(); 
-            showContent('alerts'); 
-        }
-
-        /* --- نِظام الصلاحيات والأمن التكميلي --- */
-
-        function canUserSeeItem(allowedRanksStr) {
-            if (!allowedRanksStr || allowedRanksStr === "ALL" || allowedRanksStr === "") return true;
-            return allowedRanksStr.split(',').includes(currentUserRank);
+        function canUserSeeItem(allowed) {
+            if (!allowed || allowed === "ALL" || allowed === "") return true;
+            const allowedArray = allowed.split(',');
+            return allowedArray.includes(currentUserRank);
         }
 
         function generateRankSelectorHTML(id) {
@@ -803,23 +529,267 @@
             let html = `<label style="font-size:10px; color:var(--red); display:block; margin:5px 0;">الرتب المخولة للرؤية:</label>
                         <select id="${id}" multiple style="height:60px; margin-bottom:10px;">
                             <option value="ALL" selected>الجميع (عام)</option>`;
-            Object.values(ACCESS_CODES).forEach(r => { html += `<option value="${r.rank}">${r.rank}</option>`; });
+            Object.keys(RANK_DISPLAY_NAMES).forEach(r => { html += `<option value="${r}">${RANK_DISPLAY_NAMES[r]}</option>`; });
             return html + `</select>`;
         }
 
-        async function securityAccountCheck() {
-            if (!currentUserName) return;
-            try {
-                const res = await fetch(`${SB_URL}/users?username=eq.${currentUserName}`, { headers });
-                const data = await res.json();
-                if (data.length === 0) { 
-                    alert("⚠️ تم إلغاء تصريحك من قبل الإدارة العليا. سيتم الخروج فوراً."); 
-                    logout(); 
-                }
-            } catch (e) { }
+        function isOwner(authorString) {
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            return authorString && authorString.includes(identity);
         }
-        setInterval(securityAccountCheck, 15000); 
 
+        async function renderOps(c) {
+            const res = await fetch(`${SB_URL}/operations?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>💼 القضايا النشطة</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
+                    <input id="op1" placeholder="اسم القضية"><input id="op2" placeholder="موقع البلاغ">
+                    <select id="op3"><option>نشطة</option><option>مغلقة</option><option>قيد التحقيق</option></select>
+                    <textarea id="op4" placeholder="الأهداف"></textarea>` + generateRankSelectorHTML('op_ranks') + 
+                    `<button class="action-btn" onclick="addOp()">${editingOpId ? 'تحديث القضية' : 'فتح قضية'}</button></div>`;
+
+            h += `<table><tr><th>اسم القضية</th><th>الموقع</th><th>الحالة</th><th>الأهداف</th><th>المرسل</th><th>إدارة</th></tr>`;
+            data.forEach(d => { 
+                if(!canUserSeeItem(d.allowed_ranks)) return;
+                const detailsPart = d.details ? d.details.split(" (By:")[0] : "-";
+                const authorPart = d.details ? d.details.split(" (By:")[1]?.replace(")", "") : "SYSTEM";
+                h += `<tr><td>${d.name}</td><td>${d.place}</td><td>${d.status}</td><td>${detailsPart}</td><td>${authorPart}</td>
+                    <td>
+                        ${isAdmin ? `<button class="del-btn" onclick="deleteItem('operations',${d.id})">حذف</button>` : ''}
+                        ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditOp(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                    </td></tr>`;
+            });
+            c.innerHTML = h + "</table>";
+        }
+
+        async function renderWanted(c) {
+            const res = await fetch(`${SB_URL}/wanted?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>🚨 المطلوبين</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
+                    <input id="w1" placeholder="الاسم"><input id="w2" placeholder="التهديد"><input id="w3" placeholder="رابط الصوره"><input id="w4" placeholder="رقم الهوية ID"><textarea id="w5" placeholder="الجرائم"></textarea>` + generateRankSelectorHTML('w_ranks') + 
+                    `<button class="action-btn" onclick="addWanted()">${editingWantedId ? 'تحديث البيانات' : 'إدراج'}</button></div>`;
+
+            h += `<table><tr><th>الصورة</th><th>الاسم</th><th>التهديد</th><th>الهوية</th><th>الجرائم</th><th>المرسل</th><th>إدارة</th></tr>`;
+            data.forEach(d => {
+                if(!canUserSeeItem(d.allowed_ranks)) return;
+                const crimesPart = d.detail ? d.detail.split(" (Reported by:")[0] : "-";
+                const authorPart = d.detail ? d.detail.split(" (Reported by:")[1]?.replace(")", "") : "SYSTEM";
+                h += `<tr><td><img src="${d.img_url}" class="wanted-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>${d.name}</td><td>${d.status}</td><td>${d.report_num}</td><td>${crimesPart}</td><td>${authorPart}</td>
+                    <td>
+                        ${isAdmin ? `<button class="del-btn" onclick="deleteItem('wanted',${d.id})">إزالة</button>` : ''}
+                        ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditWanted(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                    </td></tr>`;
+            });
+            c.innerHTML = h + "</table>";
+        }
+
+        async function renderIntel(c) {
+            const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>👥 المصادر الاستخباراتية</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
+                    <input id="i1" placeholder="الاسم"><input id="i2" placeholder="التواجد (السكن)"><input id="i3" placeholder="الاتصال"><input id="i4" placeholder="رابط الصورة"><textarea id="i5" placeholder="الملاحظات"></textarea>` + generateRankSelectorHTML('i_ranks') + 
+                    `<button class="action-btn" onclick="addIntel()">${editingIntelId ? 'تحديث المصدر' : 'إضافة مصدر'}</button></div>`;
+
+            h += `<table><tr><th>الصورة</th><th>الاسم</th><th>التواجد</th><th>الاتصال</th><th>الملاحظات</th><th>المرسل</th><th>إدارة</th></tr>`;
+            data.forEach(d => { 
+                if(!canUserSeeItem(d.allowed_ranks)) return;
+                if(d.phone && !d.phone.includes("MHz")) {
+                    const notesPart = d.detail ? d.detail.split(" (Recruited by:")[0] : "-";
+                    const authorPart = d.detail ? d.detail.split(" (Recruited by:")[1]?.replace(")", "") : "SYSTEM";
+                    h += `<tr><td><img src="${d.img_url}" class="wanted-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>${d.name}</td><td>${d.residence}</td><td>${d.phone}</td><td>${notesPart}</td><td>${authorPart}</td>
+                        <td>
+                            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">حذف</button>` : ''}
+                            ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditIntel(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                        </td></tr>`;
+                }
+            });
+            c.innerHTML = h + "</table>";
+        }
+
+        async function renderSignals(body) {
+            const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>📞 الاتصالات والترددات</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;">
+                    <input id="sig1" placeholder="المعرف"><input id="sig2" placeholder="التردد (بدون MHz)">` + generateRankSelectorHTML('s_ranks') + 
+                    `<button class="action-btn" onclick="addSignal()">${editingSignalId ? 'تحديث التردد' : 'إضافة تردد'}</button></div>`;
+
+            h += `<table><tr><th>المعرف</th><th>التردد</th><th>المسؤول</th><th>إدارة</th></tr>`;
+            data.forEach(d => { 
+                if(!canUserSeeItem(d.allowed_ranks)) return;
+                if(d.phone && d.phone.includes("MHz")) {
+                    const authorPart = d.detail?.split("By:")[1] || "UNKNOWN";
+                    h += `<tr><td>${d.name}</td><td>${d.phone}</td><td>${authorPart}</td>
+                        <td>
+                            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">حذف</button>` : ''}
+                            ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditSignal(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                        </td></tr>`;
+                }
+            });
+            body.innerHTML = h + "</table>";
+        }
+
+        function prepareEditOp(d) {
+            editingOpId = d.id; showContent('ops').then(() => {
+                document.getElementById('op1').value = d.name; document.getElementById('op2').value = d.place;
+                document.getElementById('op3').value = d.status; document.getElementById('op4').value = d.details.split(" (By:")[0];
+            });
+        }
+        function prepareEditWanted(d) {
+            editingWantedId = d.id; showContent('wanted').then(() => {
+                document.getElementById('w1').value = d.name; document.getElementById('w2').value = d.status;
+                document.getElementById('w3').value = d.img_url; document.getElementById('w4').value = d.report_num;
+                document.getElementById('w5').value = d.detail.split(" (Reported by:")[0];
+            });
+        }
+        function prepareEditIntel(d) {
+            editingIntelId = d.id; showContent('intel').then(() => {
+                document.getElementById('i1').value = d.name; document.getElementById('i2').value = d.residence;
+                document.getElementById('i3').value = d.phone; document.getElementById('i4').value = d.img_url;
+                document.getElementById('i5').value = d.detail.split(" (Recruited by:")[0];
+            });
+        }
+        function prepareEditSignal(d) {
+            editingSignalId = d.id; showContent('signals').then(() => {
+                document.getElementById('sig1').value = d.name; document.getElementById('sig2').value = d.phone.replace(" MHz", "");
+            });
+        }
+
+        async function addOp() { 
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            const data = { name: document.getElementById('op1').value, place: document.getElementById('op2').value, status: document.getElementById('op3').value, details: `${document.getElementById('op4').value} (By: ${identity})`, allowed_ranks: Array.from(document.getElementById('op_ranks')?.selectedOptions || []).map(o => o.value).join(',') || "ALL" };
+            if(editingOpId) { await fetch(`${SB_URL}/operations?id=eq.${editingOpId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingOpId = null; }
+            else { await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify(data) }); }
+            showContent('ops'); 
+        }
+        async function addWanted() { 
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            const data = { name: document.getElementById('w1').value, status: document.getElementById('w2').value, img_url: document.getElementById('w3').value, report_num: document.getElementById('w4').value, detail: `${document.getElementById('w5').value} (Reported by: ${identity})`, allowed_ranks: Array.from(document.getElementById('w_ranks')?.selectedOptions || []).map(o => o.value).join(',') || "ALL" };
+            if(editingWantedId) { await fetch(`${SB_URL}/wanted?id=eq.${editingWantedId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingWantedId = null; }
+            else { await fetch(`${SB_URL}/wanted`, { method: 'POST', headers, body: JSON.stringify(data) }); }
+            showContent('wanted'); 
+        }
+        async function addIntel() { 
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            const data = { name: document.getElementById('i1').value, residence: document.getElementById('i2').value, phone: document.getElementById('i3').value, img_url: document.getElementById('i4').value, detail: `${document.getElementById('i5').value} (Recruited by: ${identity})`, allowed_ranks: Array.from(document.getElementById('i_ranks')?.selectedOptions || []).map(o => o.value).join(',') || "ALL" };
+            if(editingIntelId) { await fetch(`${SB_URL}/intel?id=eq.${editingIntelId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingIntelId = null; }
+            else { await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify(data) }); }
+            showContent('intel'); 
+        }
+        async function addSignal() {
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            const data = { name: document.getElementById('sig1').value, phone: document.getElementById('sig2').value + " MHz", residence: "RADIO", detail: `By: ${identity}`, allowed_ranks: Array.from(document.getElementById('s_ranks')?.selectedOptions || []).map(o => o.value).join(',') || "ALL" };
+            if(editingSignalId) { await fetch(`${SB_URL}/intel?id=eq.${editingSignalId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingSignalId = null; }
+            else { await fetch(`${SB_URL}/intel`, { method: 'POST', headers, body: JSON.stringify(data) }); }
+            showContent('signals');
+        }
+
+        async function renderAgents(c) {
+            const [agentsRes, usersRes] = await Promise.all([
+                fetch(`${SB_URL}/agents?select=*&order=id.desc`, { headers }),
+                fetch(`${SB_URL}/users?select=username,is_suspended`, { headers })
+            ]);
+            const agents = await agentsRes.json();
+            const users = await usersRes.json();
+            const canManage = ["DIRECTOR", "DEPUTY"].includes(currentUserRank);
+            
+            let h = `<h3>🔍 سجل المحققين</h3><table><tr><th>المحقق</th><th>الكود</th><th>الرتبة</th><th>الحالة</th>${canManage ? '<th>إدارة</th>' : ''}</tr>`;
+            agents.forEach(a => {
+                const user = users.find(u => u.username === a.name);
+                const suspended = user ? user.is_suspended : false;
+                const isBurned = a.rank && a.rank.includes("BURNED");
+                
+                h += `<tr class="${isBurned ? 'burned-agent' : ''}">
+                    <td>${a.name}</td>
+                    <td><code>${a.code}</code></td>
+                    <td>${RANK_DISPLAY_NAMES[a.rank] || a.rank}</td>
+                    <td>${suspended ? '<span style="color:red;">موقوف</span>' : (isBurned ? 'BLACKLIST' : 'ACTIVE')}</td>
+                    ${canManage ? `<td>
+                        <button class="del-btn" onclick="deleteAgentAndUser('${a.name}', ${a.id})">حذف</button>
+                        ${suspended ? 
+                            `<button class="unsuspend-btn" onclick="unsuspendAgent('${a.name}')">إرجاع للعمل</button>` : 
+                            `<button class="suspend-btn" onclick="suspendAgent('${a.name}')">إيقاف عن العمل</button>`
+                        }
+                    </td>` : ''}
+                </tr>`;
+            });
+            c.innerHTML = h + "</table>";
+        }
+
+        async function renderReports(c) {
+            const [repRes, chargeRes] = await Promise.all([ fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers }), fetch(`${SB_URL}/charges?select=*&order=id.desc`, { headers }) ]);
+            const reports = await repRes.json(); const charges = await chargeRes.json();
+            let h = `<h3>📄 أرشيف التقارير</h3>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;">
+                    <input id="r_num" placeholder="رقم الملف المستندي"><input id="r_crim_id" placeholder="اسم المشتبه به"><input id="r_img" placeholder="مرفق مرئي (URL)">
+                    <div class="charges-dynamic-list">${charges.map(ch => `<div class="charge-check-item"><input type="checkbox" value="${ch.name}" class="charge-cb"><span>${ch.name}</span>${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>` : ''}</div>`).join('')}</div>
+                    ${isAdmin ? `<div style="display:flex; gap:5px; margin-bottom:15px;"><input id="new_charge_val" placeholder="إضافة تهمة جديدة..."><button onclick="addNewGlobalCharge()">إضافة</button></div>` : ''}
+                    <input id="r_time" placeholder="العقوبة"><textarea id="r_extra" placeholder="التفاصيل..."></textarea>` + generateRankSelectorHTML('r_ranks') + 
+                    `<button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button></div>`;
+            h += `<table><tr><th>المرفق</th><th>الملف</th><th>المشتبه به</th><th>التهم</th><th>العقوبة</th><th>التفاصيل</th><th>المرسل</th><th>إدارة</th></tr>`;
+            reports.forEach(r => {
+                if(!canUserSeeItem(r.allowed_ranks)) return;
+                h += `<tr><td><img src="${r.img_url}" class="report-img" onerror="this.src='https://via.placeholder.com/60'"></td><td>RE-${r.report_num}</td><td>${r.author_id}</td><td>${r.status}</td><td>${r.place}</td><td>${r.content || '-'}</td><td>${r.author}</td>
+                    <td>${isAdmin ? `<button class="del-btn" onclick="deleteItem('reports',${r.id})">حذف</button>` : ''} ${isOwner(r.author) ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}</td></tr>`;
+            });
+            c.innerHTML = h + "</table>";
+        }
+
+        function prepareEditReport(r) { editingReportId = r.id; showContent('reports').then(() => { document.getElementById('r_num').value = r.report_num; document.getElementById('r_crim_id').value = r.author_id; document.getElementById('r_img').value = r.img_url; document.getElementById('r_time').value = r.place; document.getElementById('r_extra').value = r.content; const sel = r.status ? r.status.split(' | ') : []; document.querySelectorAll('.charge-cb').forEach(cb => { if(sel.includes(cb.value)) cb.checked = true; }); }); }
+        
+        async function addRep() { 
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            const reportData = { report_num: document.getElementById('r_num').value, author_id: document.getElementById('r_crim_id').value, img_url: document.getElementById('r_img').value, status: Array.from(document.querySelectorAll('.charge-cb:checked')).map(cb => cb.value).join(' | '), place: document.getElementById('r_time').value, content: document.getElementById('r_extra').value, author: identity, allowed_ranks: Array.from(document.getElementById('r_ranks')?.selectedOptions || []).map(o => o.value).join(',') || "ALL" };
+            if(editingReportId) { await fetch(`${SB_URL}/reports?id=eq.${editingReportId}`, { method: 'PATCH', headers, body: JSON.stringify(reportData) }); editingReportId = null; }
+            else { await fetch(`${SB_URL}/reports`, { method: 'POST', headers, body: JSON.stringify(reportData) }); }
+            showContent('reports'); 
+        }
+
+        async function renderAlerts(c) {
+            const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>⚠️ التنبيهات</h3>`;
+            if(isAdmin) h += `<input id="al1" placeholder="نص التنبيه"><button class="action-btn" onclick="addAlert()">إرسال</button>`;
+            data.forEach(a => h += `<div class="report-card" style="color:orange;"><b>[ALERT]</b> ${a.text} <br><small>${a.date_str}</small></div>`);
+            c.innerHTML = h;
+        }
+
+        async function renderLogs(c) {
+            if(!isAdmin) return;
+            const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>📊 سجل النشاط</h3>`;
+            data.forEach(l => h += `<div style="font-size:11px; border-bottom:1px solid #111; padding:8px;">[${l.entry_time}] :: ACCESS :: ${l.user_name}</div>`);
+            c.innerHTML = h;
+        }
+
+        async function renderCodeManager(c) {
+            if (!isAdmin) return;
+            const res = await fetch(`${SB_URL}/account_codes?select=*&order=id.desc`, { headers });
+            const data = await res.json();
+            let h = `<h3>🔑 مفاتيح الوصول</h3><div style="background:rgba(20,0,0,0.5); padding:15px; border:1px solid #400; margin-bottom:20px;"><input id="new_code_val" placeholder="الكود"><select id="new_code_rank">`;
+            Object.keys(RANK_DISPLAY_NAMES).forEach(r => { h += `<option value="${r}">${RANK_DISPLAY_NAMES[r]}</option>`; });
+            h += `</select><button class="action-btn" onclick="generateNewAccessCode()">إصدار</button></div><table><tr><th>الكود</th><th>الرتبة</th><th>الحالة</th><th>المستخدم</th></tr>`;
+            data.forEach(d => { h += `<tr><td>${d.code}</td><td>${RANK_DISPLAY_NAMES[d.rank] || d.rank}</td><td>${d.is_used ? 'مستخدم' : 'نشط'}</td><td>${d.used_by || '-'}</td></tr>`; });
+            c.innerHTML = h + "</table>";
+        }
+
+        async function addNewGlobalCharge() {
+            const val = document.getElementById('new_charge_val').value.trim(); if(!val) return;
+            await fetch(`${SB_URL}/charges`, { method: 'POST', headers, body: JSON.stringify({ name: val }) }); showContent('reports');
+        }
+        async function deleteGlobalCharge(id) { if(confirm("حذف هذه التهمة؟")) { await fetch(`${SB_URL}/charges?id=eq.${id}`, { method: 'DELETE', headers }); showContent('reports'); } }
+        async function addAlert() { 
+            const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
+            await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: `${document.getElementById('al1').value} (By: ${identity})`, date_str: new Date().toLocaleString('ar-EG') }) }); 
+            showContent('alerts'); 
+        }
+        async function generateNewAccessCode() {
+            const code = document.getElementById('new_code_val').value.trim(); const rank = document.getElementById('new_code_rank').value;
+            await fetch(`${SB_URL}/account_codes`, { method: 'POST', headers, body: JSON.stringify({ code, rank, created_by: currentUserName, is_used: false }) }); showContent('manage_codes');
+        }
     </script>
 </body>
 </html>
