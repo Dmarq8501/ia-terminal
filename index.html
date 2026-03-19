@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DETECTIVE HUB | v21.0 CASE EDITION</title>
+    <title>DETECTIVE HUB | v21.0 CASE EDITION - UNLOCKED</title>
     <style>
         :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); --folder-bg: #1a1a1a; --id-bg: #222; --warn-gold: #ffcc00; }
         
@@ -320,11 +320,12 @@
             <div class="category-box" onclick="showContent('reports')"><span class="icon">📄</span><h3>التقارير</h3></div>
             <div class="category-box" onclick="showContent('signals')"><span class="icon">📞</span><h3>الاتصالات</h3></div>
             <div class="category-box" onclick="showContent('map')"><span class="icon">📍</span><h3>تحديد المواقع الجغرافية</h3></div>
+            
             <div id="stats-btn" class="category-box" onclick="showContent('stats')" style="display:none;"><span class="icon">📊</span><h3>الإحصائيات</h3></div>
             <div id="rank-manager-btn" class="category-box" onclick="showContent('rank_manager')" style="display:none; border: 1px solid var(--warn-gold);"><span class="icon">🛡️</span><h3 style="color:var(--warn-gold);">التحكم بالرتب</h3></div>
-            
             <div id="logs-btn" class="category-box" onclick="showContent('logs')" style="display:none;"><span class="icon">🛡️</span><h3>سجل النشاط</h3></div>
             <div id="codes-btn" class="category-box" onclick="showContent('manage_codes')" style="display:none;"><span class="icon">🔑</span><h3>توليد مفاتيح الوصول</h3></div>
+            
             <div class="category-box" onclick="showContent('alerts')"><span class="icon">⚠️</span><h3>التنبيهات</h3></div>
         </div>
 
@@ -358,7 +359,7 @@
             oscillator.stop(context.currentTime + 0.05); // مدة الصوت قصيرة جداً
         }
 
-        // --- الأساسيات واسترجاع البيانات (بدون تغيير) ---
+        // --- الأساسيات واسترجاع البيانات ---
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -446,7 +447,6 @@
                     }); 
                 }
                 
-                // إضافة الصورة الشخصية والبيانات تلقائياً في جدول المحققين (agents)
                 await fetch(`${SB_URL}/agents`, { 
                     method: 'POST', 
                     headers, 
@@ -476,20 +476,18 @@
 
         function startSession(user) {
             currentUserName = user.username; currentUserRank = user.rank;
-            const rankInfo = Object.values(ACCESS_CODES).find(r => r.rank === user.rank);
-            isAdmin = rankInfo ? rankInfo.admin : false;
-            document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-interface').style.display = 'block'; document.getElementById('news-ticker').style.display = 'block'; 
+            const isManager = (user.rank === "DIRECTOR" || user.rank === "DEPUTY");
+            isAdmin = isManager; 
+
+            document.getElementById('login-screen').style.display = 'none'; 
+            document.getElementById('main-interface').style.display = 'block'; 
+            document.getElementById('news-ticker').style.display = 'block'; 
             document.getElementById('auth-status').innerText = `ONLINE // DETECTIVE: ${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`;
             
-            // إظهار أزرار الإدارة والقيادة
-            if(isAdmin) { 
-                document.getElementById('logs-btn').style.display = 'block'; 
-                document.getElementById('codes-btn').style.display = 'block'; 
-            }
-            if(["DIRECTOR", "DEPUTY"].includes(currentUserRank)) {
-                document.getElementById('stats-btn').style.display = 'block';
-                document.getElementById('rank-manager-btn').style.display = 'block'; // تفعيل زر إدارة الرتب
-            }
+            document.getElementById('logs-btn').style.display = isManager ? 'block' : 'none'; 
+            document.getElementById('codes-btn').style.display = isManager ? 'block' : 'none'; 
+            document.getElementById('stats-btn').style.display = isManager ? 'block' : 'none';
+            document.getElementById('rank-manager-btn').style.display = isManager ? 'block' : 'none';
 
             fetch(`${SB_URL}/logs`, { method: 'POST', headers, body: JSON.stringify({ user_name: `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`, entry_time: new Date().toLocaleString('ar-EG') }) });
             syncEmergencyAlerts();
@@ -522,11 +520,27 @@
 
         function closeDisplay() { document.getElementById('display-area').style.display = "none"; document.getElementById('emergency-banner').style.display = "none"; editingReportId = null; editingOpId = null; editingWantedId = null; editingIntelId = null; editingSignalId = null; }
 
-        async function deleteItem(table, id) { if(!isAdmin) return alert("ACCESS DENIED"); if(confirm("تأكيد مسح البيانات؟")) { await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers }); showContent(table); } }
+        // وظيفة التحقق من ملكية المحتوى (المرسل فقط)
+        function checkOwnership(authorString) {
+            if (isAdmin) return true; // المدير والنائب دائماً يملكون صلاحية
+            if (!authorString) return false;
+            // التحقق إذا كان اسم المستخدم الحالي جزءاً من نص الكاتب المحفوظ
+            return authorString.includes(currentUserName);
+        }
+
+        async function deleteItem(table, id, authorString) { 
+            if(!checkOwnership(authorString)) return alert("عذراً، لا يمكنك حذف هذا العنصر لأنك لست كاتبه.");
+            if(confirm("تأكيد مسح البيانات؟")) { await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers }); showContent(table); } 
+        }
 
         // --- وظائف العرض والتحكم ---
 
         async function showContent(type) {
+            if(['stats', 'rank_manager', 'logs', 'manage_codes'].includes(type) && !isAdmin) {
+                alert("ACCESS DENIED: DIRECTOR/DEPUTY ONLY");
+                return;
+            }
+
             const body = document.getElementById('content-body');
             document.getElementById('display-area').style.display = "block";
             syncEmergencyAlerts();
@@ -554,50 +568,26 @@
             elements.forEach(el => { el.style.display = el.innerText.toLowerCase().includes(term) ? "" : "none"; });
         }
 
-        function canUserSeeItem(allowed) { if (!allowed || allowed === "ALL" || allowed === "") return true; const allowedArray = allowed.split(','); return allowedArray.includes(currentUserRank); }
+        function canUserSeeItem(allowed) { 
+            if(!allowed || allowed === "ALL" || isAdmin) return true;
+            return allowed.split(',').includes(currentUserRank);
+        }
 
         function generateRankSelectorHTML(cls) {
-            if (!isAdmin) return "";
             let html = `<label style="font-size:10px; color:var(--red); display:block; margin:5px 0;">الرتب المخولة للرؤية:</label><div class="rank-multi-selector"><div class="rank-option"><input type="checkbox" value="ALL" class="${cls}" checked> <span>الجميع (عام)</span></div>`;
             Object.keys(RANK_DISPLAY_NAMES).forEach(r => { html += `<div class="rank-option"><input type="checkbox" value="${r}" class="${cls}"> <span>${RANK_DISPLAY_NAMES[r]}</span></div>`; });
             return html + `</div>`;
         }
 
-        function isOwner(authorString) { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; return authorString && authorString.includes(identity); }
+        function toggleFolder(el) { el.classList.toggle('open'); }
 
-        // وظيفة التبديل بين الفتح والإغلاق
-        function toggleFolder(el) {
-            el.classList.toggle('open');
-        }
-
-        // --- وظيفة إدارة الرتب (جديد) ---
         async function renderRankManager(c) {
-            if (!["DIRECTOR", "DEPUTY"].includes(currentUserRank)) return c.innerHTML = "ACCESS DENIED";
             c.innerHTML = "<h3>🛡️ تعديل رتب وصلاحيات الموظفين</h3><p style='color:red;'>جاري سحب بيانات الهويات...</p>";
-            
-            const [usersRes, agentsRes] = await Promise.all([
-                fetch(`${SB_URL}/users?select=*`, { headers }),
-                fetch(`${SB_URL}/agents?select=*`, { headers })
-            ]);
-            
-            const users = await usersRes.json();
-            const agents = await agentsRes.json();
-            
+            const [usersRes, agentsRes] = await Promise.all([ fetch(`${SB_URL}/users?select=*`, { headers }), fetch(`${SB_URL}/agents?select=*`, { headers }) ]);
+            const users = await usersRes.json(); const agents = await agentsRes.json();
             let h = `<div style="overflow-x:auto;"><table><tr><th>المستخدم</th><th>الرتبة الحالية</th><th>تعديل الرتبة</th><th>الإجراء</th></tr>`;
-            
             users.forEach(u => {
-                h += `<tr>
-                    <td><b>${u.username}</b></td>
-                    <td id="rank-text-${u.id}">${RANK_DISPLAY_NAMES[u.rank] || u.rank}</td>
-                    <td>
-                        <select id="new-rank-sel-${u.id}" style="padding:5px; font-size:11px;">
-                            ${Object.keys(RANK_DISPLAY_NAMES).map(r => `<option value="${r}" ${u.rank === r ? 'selected' : ''}>${RANK_DISPLAY_NAMES[r]}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td>
-                        <button class="edit-report-btn" onclick="updateUserRank(${u.id}, '${u.username}')">تحديث</button>
-                    </td>
-                </tr>`;
+                h += `<tr><td><b>${u.username}</b></td><td id="rank-text-${u.id}">${RANK_DISPLAY_NAMES[u.rank] || u.rank}</td><td><select id="new-rank-sel-${u.id}" style="padding:5px; font-size:11px;">${Object.keys(RANK_DISPLAY_NAMES).map(r => `<option value="${r}" ${u.rank === r ? 'selected' : ''}>${RANK_DISPLAY_NAMES[r]}</option>`).join('')}</select></td><td><button class="edit-report-btn" onclick="updateUserRank(${u.id}, '${u.username}')">تحديث</button></td></tr>`;
             });
             c.innerHTML = h + "</table></div>";
         }
@@ -606,77 +596,28 @@
             const newRank = document.getElementById(`new-rank-sel-${userId}`).value;
             if(confirm(`هل أنت متأكد من تغيير رتبة (${username}) إلى (${RANK_DISPLAY_NAMES[newRank]})؟`)) {
                 try {
-                    // 1. تحديث جدول المستخدمين (users) لتمكينه من الدخول بالرتبة الجديدة
-                    await fetch(`${SB_URL}/users?id=eq.${userId}`, { 
-                        method: 'PATCH', 
-                        headers, 
-                        body: JSON.stringify({ rank: newRank }) 
-                    });
-                    
-                    // 2. تحديث جدول المحققين (agents) لتغيير المسمى الوظيفي في الهوية
-                    await fetch(`${SB_URL}/agents?name=eq.${username}`, { 
-                        method: 'PATCH', 
-                        headers, 
-                        body: JSON.stringify({ rank: newRank }) 
-                    });
-                    
-                    alert("تم تحديث الرتبة بنجاح في كافة السجلات.");
+                    await fetch(`${SB_URL}/users?id=eq.${userId}`, { method: 'PATCH', headers, body: JSON.stringify({ rank: newRank }) });
+                    await fetch(`${SB_URL}/agents?name=eq.${username}`, { method: 'PATCH', headers, body: JSON.stringify({ rank: newRank }) });
+                    alert("تم تحديث الرتبة بنجاح.");
                     showContent('rank_manager');
                 } catch(e) { alert("حدث خطأ أثناء التحديث."); }
             }
         }
 
-        // --- وظيفة الإحصائيات ---
         async function renderStats(c) {
-            if (!["DIRECTOR", "DEPUTY"].includes(currentUserRank)) return c.innerHTML = "ACCESS DENIED";
-            
             c.innerHTML = "<p style='color:red;'>جاري تحليل قاعدة البيانات...</p>";
-            
-            const [agentsRes, reportsRes, opsRes] = await Promise.all([
-                fetch(`${SB_URL}/agents?select=*`, { headers }),
-                fetch(`${SB_URL}/reports?select=author`, { headers }),
-                fetch(`${SB_URL}/operations?select=details`, { headers })
-            ]);
-            
-            const agents = await agentsRes.json();
-            const reports = await reportsRes.json();
-            const ops = await opsRes.json();
-            
-            let h = `<h3>📊 إحصائيات الأداء المهني</h3>`;
-            h += `<div style="margin-top:20px;">`;
-            
+            const [agentsRes, reportsRes, opsRes] = await Promise.all([ fetch(`${SB_URL}/agents?select=*`, { headers }), fetch(`${SB_URL}/reports?select=author`, { headers }), fetch(`${SB_URL}/operations?select=details`, { headers }) ]);
+            const agents = await agentsRes.json(); const reports = await reportsRes.json(); const ops = await opsRes.json();
+            let h = `<h3>📊 إحصائيات الأداء المهني</h3><div style="margin-top:20px;">`;
             agents.forEach(a => {
                 const agentFullTag = `${RANK_DISPLAY_NAMES[a.rank] || a.rank} | ${a.name}`;
-                
-                // حساب عدد التقارير
                 const reportCount = reports.filter(r => r.author && r.author.includes(agentFullTag)).length;
-                
-                // حساب عدد العمليات المشارك بها
                 const opCount = ops.filter(o => o.details && o.details.includes(agentFullTag)).length;
-                
-                h += `
-                <div class="stat-card">
-                    <div>
-                        <b style="color:#fff;">${a.name}</b><br>
-                        <small style="color:#666;">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</small>
-                    </div>
-                    <div style="display:flex; gap:20px; text-align:center;">
-                        <div>
-                            <div class="stat-val">${reportCount}</div>
-                            <div style="font-size:9px;">تقارير</div>
-                        </div>
-                        <div>
-                            <div class="stat-val" style="color:#0f0;">${opCount}</div>
-                            <div style="font-size:9px;">عمليات</div>
-                        </div>
-                    </div>
-                </div>`;
+                h += `<div class="stat-card"><div><b style="color:#fff;">${a.name}</b><br><small style="color:#666;">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</small></div><div style="display:flex; gap:20px; text-align:center;"><div><div class="stat-val">${reportCount}</div><div style="font-size:9px;">تقارير</div></div><div><div class="stat-val" style="color:#0f0;">${opCount}</div><div style="font-size:9px;">عمليات</div></div></div></div>`;
             });
-            
             c.innerHTML = h + "</div>";
         }
 
-        // --- التحديث البصري للقضايا النشطة ---
         async function renderOps(c) {
             const res = await fetch(`${SB_URL}/operations?select=*&order=id.desc`, { headers });
             const data = await res.json();
@@ -684,28 +625,28 @@
             h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="op1" placeholder="اسم القضية"><input id="op2" placeholder="موقع البلاغ"><select id="op3"><option>نشطة</option><option>مغلقة</option><option>قيد التحقيق</option></select><textarea id="op4" placeholder="الأهداف"></textarea>` + generateRankSelectorHTML('op-rank-cb') + `<button class="action-btn" onclick="addOp()">${editingOpId ? 'تحديث القضية' : 'فتح قضية'}</button></div>`;
             h += `<div class="universal-grid">`;
             data.forEach(d => { 
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                const authorPart = d.details ? d.details.split(" (By:")[1]?.replace(")", "") : "SYSTEM";
-                h += `<div class="file-folder" onclick="toggleFolder(this)">
-                    <div class="file-tab">CASE #${d.id}</div>
-                    <b style="color:var(--red); display:block;">${d.name}</b>
-                    
-                    <div class="folder-details">
-                        <div style="font-size:11px; margin-bottom:10px;"><b>الموقع:</b> ${d.place} | <b>الحالة:</b> ${d.status}</div>
-                        <div style="font-size:11px; color:#999; border-top:1px solid #333; padding-top:10px;">${d.details.split(" (By:")[0]}</div>
-                        <div class="stamp ${d.status === 'نشطة' ? 'stamp-red' : 'stamp-green'}">${d.status}</div>
-                        <div style="margin-top:15px; font-size:9px; color:#555;">المحقق المسؤول: ${authorPart}</div>
-                        <div style="margin-top:10px;" onclick="event.stopPropagation()">
-                            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('operations',${d.id})">حذف</button>` : ''}
-                            ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditOp(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                if(canUserSeeItem(d.allowed_ranks)) {
+                    const authorPart = d.details ? d.details.split(" (By:")[1]?.replace(")", "") : "SYSTEM";
+                    const hasPerm = checkOwnership(authorPart);
+                    h += `<div class="file-folder" onclick="toggleFolder(this)">
+                        <div class="file-tab">CASE #${d.id}</div>
+                        <b style="color:var(--red); display:block;">${d.name}</b>
+                        <div class="folder-details">
+                            <div style="font-size:11px; margin-bottom:10px;"><b>الموقع:</b> ${d.place} | <b>الحالة:</b> ${d.status}</div>
+                            <div style="font-size:11px; color:#999; border-top:1px solid #333; padding-top:10px;">${d.details.split(" (By:")[0]}</div>
+                            <div class="stamp ${d.status === 'نشطة' ? 'stamp-red' : 'stamp-green'}">${d.status}</div>
+                            <div style="margin-top:15px; font-size:9px; color:#555;">المحقق المسؤول: ${authorPart}</div>
+                            <div style="margin-top:10px;" onclick="event.stopPropagation()">
+                                ${hasPerm ? `<button class="del-btn" onclick="deleteItem('operations',${d.id}, '${authorPart}')">حذف</button>` : ''}
+                                ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditOp(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                            </div>
                         </div>
-                    </div>
-                </div>`;
+                    </div>`;
+                }
             });
             c.innerHTML = h + "</div>";
         }
 
-        // --- التحديث البصري للمطلوبين ---
         async function renderWanted(c) {
             const res = await fetch(`${SB_URL}/wanted?select=*&order=id.desc`, { headers });
             const data = await res.json();
@@ -713,28 +654,28 @@
             h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="w1" placeholder="الاسم"><input id="w2" placeholder="التهديد"><input id="w3" placeholder="رابط الصوره"><input id="w4" placeholder="رقم الهوية ID"><textarea id="w5" placeholder="الجرائم"></textarea>` + generateRankSelectorHTML('w-rank-cb') + `<button class="action-btn" onclick="addWanted()">${editingWantedId ? 'تحديث البيانات' : 'إدراج'}</button></div>`;
             h += `<div class="universal-grid">`;
             data.forEach(d => {
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                const authorPart = d.detail ? d.detail.split(" (Reported by:")[1]?.replace(")", "") : "SYSTEM";
-                h += `<div class="wanted-poster">
-                    <div class="wanted-title">WANTED</div>
-                    <img src="${d.img_url}" class="mugshot" onerror="this.src='https://via.placeholder.com/150?text=NO+PHOTO'">
-                    <div style="font-weight:bold; font-size:18px; margin:10px 0;">${d.name}</div>
-                    <div style="font-size:12px;"><b>التهديد:</b> ${d.status} | <b>ID:</b> ${d.report_num}</div>
-                    <div style="font-size:11px; margin-top:5px; height:40px; overflow:hidden;">${d.detail.split(" (Reported by:")[0]}</div>
-                    <div style="margin-top:10px; display:flex; gap:5px; justify-content:center;">
-                        ${isAdmin ? `<button class="del-btn" onclick="deleteItem('wanted',${d.id})">إزالة</button>` : ''}
-                        ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditWanted(${JSON.stringify(d)})'>تعديل</button>` : ''}
-                    </div>
-                </div>`;
+                if(canUserSeeItem(d.allowed_ranks)) {
+                    const authorPart = d.detail ? d.detail.split(" (Reported by:")[1]?.replace(")", "") : "SYSTEM";
+                    const hasPerm = checkOwnership(authorPart);
+                    h += `<div class="wanted-poster">
+                        <div class="wanted-title">WANTED</div>
+                        <img src="${d.img_url}" class="mugshot" onerror="this.src='https://via.placeholder.com/150?text=NO+PHOTO'">
+                        <div style="font-weight:bold; font-size:18px; margin:10px 0;">${d.name}</div>
+                        <div style="font-size:12px;"><b>التهديد:</b> ${d.status} | <b>ID:</b> ${d.report_num}</div>
+                        <div style="font-size:11px; margin-top:5px; height:40px; overflow:hidden;">${d.detail.split(" (Reported by:")[0]}</div>
+                        <div style="margin-top:10px; display:flex; gap:5px; justify-content:center;">
+                            ${hasPerm ? `<button class="del-btn" onclick="deleteItem('wanted',${d.id}, '${authorPart}')">إزالة</button>` : ''}
+                            ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditWanted(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                        </div>
+                    </div>`;
+                }
             });
             c.innerHTML = h + "</div>";
         }
 
-        // --- التحديث البصري للمحققين ---
         async function renderAgents(c) {
             const [agentsRes, usersRes] = await Promise.all([ fetch(`${SB_URL}/agents?select=*&order=id.desc`, { headers }), fetch(`${SB_URL}/users?select=username,is_suspended`, { headers }) ]);
             const agents = await agentsRes.json(); const users = await usersRes.json();
-            const canManage = ["DIRECTOR", "DEPUTY"].includes(currentUserRank);
             let h = `<h3>🔍 سجل الهوية المهنية للمحققين</h3><div class="universal-grid">`;
             agents.forEach(a => {
                 const user = users.find(u => u.username === a.name); const suspended = user ? user.is_suspended : false;
@@ -746,8 +687,8 @@
                         <div style="font-size:10px; color:#888;">Badge: ${a.code}</div>
                         <div style="font-size:9px; color:${suspended ? 'red' : '#0f0'}; margin-top:5px;">● ${suspended ? 'SUSPENDED' : 'ACTIVE DUTY'}</div>
                         <div style="margin-top:10px; display:flex; gap:3px;">
-                            ${canManage ? `<button class="del-btn" style="padding:2px 5px;" onclick="deleteAgentAndUser('${a.name}', ${a.id})">X</button>
-                            ${suspended ? `<button class="unsuspend-btn" style="padding:2px 5px;" onclick="unsuspendAgent('${a.name}')">ON</button>` : `<button class="suspend-btn" style="padding:2px 5px;" onclick="suspendAgent('${a.name}')">OFF</button>`}` : ''}
+                            ${isAdmin ? `<button class="del-btn" style="padding:2px 5px;" onclick="deleteAgentAndUser('${a.name}', ${a.id})">X</button>` : ''}
+                            ${isAdmin ? (suspended ? `<button class="unsuspend-btn" style="padding:2px 5px;" onclick="unsuspendAgent('${a.name}')">ON</button>` : `<button class="suspend-btn" style="padding:2px 5px;" onclick="suspendAgent('${a.name}')">OFF</button>`) : ''}
                         </div>
                     </div>
                 </div>`;
@@ -755,7 +696,6 @@
             c.innerHTML = h + "</div>";
         }
 
-        // --- التحديث البصري للمصادر ---
         async function renderIntel(c) {
             const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
             const data = await res.json();
@@ -763,23 +703,17 @@
             h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="i1" placeholder="الاسم"><input id="i2" placeholder="التواجد (السكن)"><input id="i3" placeholder="الاتصال"><input id="i4" placeholder="رابط الصورة"><textarea id="i5" placeholder="الملاحظات"></textarea>` + generateRankSelectorHTML('i-rank-cb') + `<button class="action-btn" onclick="addIntel()">${editingIntelId ? 'تحديث المصدر' : 'إضافة مصدر'}</button></div>`;
             h += `<div class="universal-grid">`;
             data.forEach(d => { 
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                if(d.phone && !d.phone.includes("MHz")) {
+                if(canUserSeeItem(d.allowed_ranks) && d.phone && !d.phone.includes("MHz")) {
                     const authorPart = d.detail ? d.detail.split(" (Recruited by:")[1]?.replace(")", "") : "SYSTEM";
+                    const hasPerm = checkOwnership(authorPart);
                     h += `<div class="file-folder" style="background:#221a10;">
                         <div class="file-tab" style="background:#554422;">SECRET FILE</div>
-                        <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <img src="${d.img_url}" style="width:50px; height:50px; border:1px solid #444;" onerror="this.src='https://via.placeholder.com/50?text=??'">
-                            <div>
-                                <b style="color:#d4c49c; font-size:14px;">Codename: ${d.name}</b>
-                                <div style="font-size:10px; color:#888;">الموقع: ${d.residence} | الاتصال: ${d.phone}</div>
-                            </div>
-                        </div>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;"><img src="${d.img_url}" style="width:50px; height:50px; border:1px solid #444;" onerror="this.src='https://via.placeholder.com/50?text=??'"><div><b style="color:#d4c49c; font-size:14px;">Codename: ${d.name}</b><div style="font-size:10px; color:#888;">الموقع: ${d.residence} | الاتصال: ${d.phone}</div></div></div>
                         <div style="font-size:11px; color:#aaa; font-style:italic;"><b>الملاحظات:</b> ${d.detail.split(" (Recruited by:")[0]}</div>
                         <div class="stamp stamp-red">CONFIDENTIAL</div>
                         <div style="margin-top:10px;">
-                            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('intel',${d.id})">حذف</button>` : ''}
-                            ${isOwner(authorPart) ? `<button class="edit-report-btn" onclick='prepareEditIntel(${JSON.stringify(d)})'>تعديل</button>` : ''}
+                            ${hasPerm ? `<button class="del-btn" onclick="deleteItem('intel',${d.id}, '${authorPart}')">حذف</button>` : ''}
+                            ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditIntel(${JSON.stringify(d)})'>تعديل</button>` : ''}
                         </div>
                     </div>`;
                 }
@@ -787,7 +721,6 @@
             c.innerHTML = h + "</div>";
         }
 
-        // --- التحديث البصري للاتصالات ---
         async function renderSignals(body) {
             const res = await fetch(`${SB_URL}/intel?select=*&order=id.desc`, { headers });
             const data = await res.json();
@@ -795,58 +728,36 @@
             h += `<div style="background: rgba(0,20,0,0.1); padding: 15px; border: 1px solid #040; margin-bottom: 20px;"><input id="sig1" placeholder="المعرف"><input id="sig2" placeholder="التردد (بدون MHz)">` + generateRankSelectorHTML('sig-rank-cb') + `<button class="action-btn" style="background:#060; color:#fff;" onclick="addSignal()">${editingSignalId ? 'تحديث التردد' : 'إضافة تردد'} </button></div>`;
             h += `<div class="universal-grid">`;
             data.forEach(d => { 
-                if(!canUserSeeItem(d.allowed_ranks)) return;
-                if(d.phone && d.phone.includes("MHz")) {
+                if(canUserSeeItem(d.allowed_ranks) && d.phone && d.phone.includes("MHz")) {
                     const authorPart = d.detail?.split("By: ")[1] || "UNKNOWN";
-                    h += `<div class="signal-comm-box">
-                        <div style="font-size:10px; color:#0f0; opacity:0.5;">SIGNAL DETECTED...</div>
-                        <b style="font-size:16px;">${d.name}</b>
-                        <div style="font-size:20px; font-weight:bold; margin:5px 0;">${d.phone}</div>
-                        <div class="signal-wave"></div>
-                        <div style="font-size:9px;">ENCRYPTED BY: ${authorPart}</div>
-                        <div style="margin-top:10px;">
-                            ${isAdmin ? `<button class="del-btn" style="border-color:#500; background:none;" onclick="deleteItem('intel', ${d.id})">TERMINATE</button>` : ''}
-                            ${isOwner(authorPart) ? `<button class="edit-report-btn" style="border-color:#0f0; background:none;" onclick='prepareEditSignal(${JSON.stringify(d)})'>RECODE</button>` : ''}
-                        </div>
-                    </div>`;
+                    const hasPerm = checkOwnership(authorPart);
+                    h += `<div class="signal-comm-box"><div style="font-size:10px; color:#0f0; opacity:0.5;">SIGNAL DETECTED...</div><b style="font-size:16px;">${d.name}</b><div style="font-size:20px; font-weight:bold; margin:5px 0;">${d.phone}</div><div class="signal-wave"></div><div style="font-size:9px;">ENCRYPTED BY: ${authorPart}</div><div style="margin-top:10px;">
+                        ${hasPerm ? `<button class="del-btn" style="border-color:#500; background:none;" onclick="deleteItem('intel', ${d.id}, '${authorPart}')">TERMINATE</button>` : ''}
+                        ${hasPerm ? `<button class="edit-report-btn" style="border-color:#0f0; background:none;" onclick='prepareEditSignal(${JSON.stringify(d)})'>RECODE</button>` : ''}
+                    </div></div>`;
                 }
             });
             body.innerHTML = h + "</div>";
         }
 
-        // --- التحديث البصري للتقارير ---
         async function renderReports(c) {
             const [repRes, chargeRes] = await Promise.all([ fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers }), fetch(`${SB_URL}/charges?select=*&order=id.desc`, { headers }) ]);
             const reports = await repRes.json(); const charges = await chargeRes.json();
             let h = `<h3>📄 أرشيف القضايا المكتملة</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;"><input id="r_num" placeholder="رقم الملف المستندي"><input id="r_crim_id" placeholder="اسم المشتبه به"><input id="r_img" placeholder="مرفق مرئي (URL)"><div class="charges-dynamic-list">${charges.map(ch => `<div class="charge-check-item"><input type="checkbox" value="${ch.name}" class="charge-cb"><span>${ch.name}</span>${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>` : ''}</div>`).join('')}</div>${isAdmin ? `<div style="display:flex; gap:5px; margin-bottom:15px;"><input id="new_charge_val" placeholder="إضافة تهمة جديدة..."><button onclick="addNewGlobalCharge()">إضافة</button></div>` : ''}<input id="r_time" placeholder="العقوبة"><textarea id="r_extra" placeholder="التفاصيل..."></textarea>` + generateRankSelectorHTML('rep-rank-cb') + `<button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button></div>`;
+            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;"><input id="r_num" placeholder="رقم الملف المستندي"><input id="r_crim_id" placeholder="اسم المشتبه به"><input id="r_img" placeholder="مرفق مرئي (URL)"><div class="charges-dynamic-list">${charges.map(ch => `<div class="charge-check-item"><input type="checkbox" value="${ch.name}" class="charge-cb"><span>${ch.name}</span>${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>`:''}</div>`).join('')}</div><div style="display:flex; gap:5px; margin-bottom:15px;"><input id="new_charge_val" placeholder="إضافة تهمة جديدة..."><button onclick="addNewGlobalCharge()">إضافة</button></div><input id="r_time" placeholder="العقوبة"><textarea id="r_extra" placeholder="التفاصيل..."></textarea>` + generateRankSelectorHTML('rep-rank-cb') + `<button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button></div>`;
             h += `<div class="universal-grid">`;
             reports.forEach(r => {
-                if(!canUserSeeItem(r.allowed_ranks)) return;
-                h += `<div class="file-folder" style="padding-left:110px;" onclick="toggleFolder(this)">
-                    <div class="file-tab">FILE RE-${r.report_num}</div>
-                    <img src="${r.img_url}" style="position:absolute; left:15px; top:40px; width:80px; height:100px; border:1px solid #555; background:#000;" onerror="this.src='https://via.placeholder.com/80x100'">
-                    
-                    <b style="color:#fff; font-size:15px; display:block;">FILE ID: ${r.report_num}</b>
-                    
-                    <div class="folder-details">
-                        <b style="color:var(--red); font-size:14px;">المتهم: ${r.author_id}</b>
-                        <div style="font-size:10px; color:var(--red); margin:5px 0;">التهم: ${r.status || 'None'}</div>
-                        <div style="font-size:10px; color:#0f0; margin-bottom:5px;">العقوبة: ${r.place || 'لا يوجد'}</div>
-                        <div style="font-size:11px; color:#999; margin-bottom:10px;">${r.content}</div>
-                        <div class="stamp stamp-green" style="bottom:40px;">CLOSED</div>
-                        <div style="font-size:9px; color:#555;">By: ${r.author}</div>
-                        <div style="margin-top:10px;" onclick="event.stopPropagation()">
-                            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('reports',${r.id})">حذف</button>` : ''}
-                            ${isOwner(r.author) ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}
-                        </div>
-                    </div>
-                </div>`;
+                if(canUserSeeItem(r.allowed_ranks)) {
+                    const authorPart = r.author || "SYSTEM";
+                    const hasPerm = checkOwnership(authorPart);
+                    h += `<div class="file-folder" style="padding-left:110px;" onclick="toggleFolder(this)"><div class="file-tab">FILE RE-${r.report_num}</div><img src="${r.img_url}" style="position:absolute; left:15px; top:40px; width:80px; height:100px; border:1px solid #555; background:#000;" onerror="this.src='https://via.placeholder.com/80x100'"><b style="color:#fff; font-size:15px; display:block;">FILE ID: ${r.report_num}</b><div class="folder-details"><b style="color:var(--red); font-size:14px;">المتهم: ${r.author_id}</b><div style="font-size:10px; color:var(--red); margin:5px 0;">التهم: ${r.status || 'None'}</div><div style="font-size:10px; color:#0f0; margin-bottom:5px;">العقوبة: ${r.place || 'لا يوجد'}</div><div style="font-size:11px; color:#999; margin-bottom:10px;">${r.content}</div><div class="stamp stamp-green" style="bottom:40px;">CLOSED</div><div style="font-size:9px; color:#555;">By: ${r.author}</div><div style="margin-top:10px;" onclick="event.stopPropagation()">
+                        ${hasPerm ? `<button class="del-btn" onclick="deleteItem('reports',${r.id}, '${authorPart}')">حذف</button>` : ''}
+                        ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}
+                    </div></div></div>`;
+                }
             });
             c.innerHTML = h + "</div>";
         }
-
-        // --- بقية الوظائف التقنية ---
 
         async function suspendAgent(agentName) {
             const reason = prompt("يرجى كتابة سبب الإيقاف عن العمل:"); if(!reason) return;
@@ -856,15 +767,14 @@
             if(confirm(`إعادة المحقق ${agentName} للعمل؟`)) { try { await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'PATCH', headers, body: JSON.stringify({ is_suspended: false, suspension_reason: "" }) }); alert(`عاد للعمل.`); showContent('agents'); } catch(e) { alert("فشلت العملية."); } }
         }
         async function deleteAgentAndUser(agentName, agentId) {
-            if(!["DIRECTOR", "DEPUTY"].includes(currentUserRank)) return alert("صلاحية الحذف للـ Director و Deputy فقط.");
             if(confirm(`حذف المحقق (${agentName}) نهائياً؟`)) { await fetch(`${SB_URL}/agents?id=eq.${agentId}`, { method: 'DELETE', headers }); await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'DELETE', headers }); showContent('agents'); }
         }
 
-        function prepareEditOp(d) { editingOpId = d.id; showContent('ops').then(() => { document.getElementById('op1').value = d.name; document.getElementById('op2').value = d.place; document.getElementById('op3').value = d.status; document.getElementById('op4').value = d.details.split(" (By:")[0]; }); }
-        function prepareEditWanted(d) { editingWantedId = d.id; showContent('wanted').then(() => { document.getElementById('w1').value = d.name; document.getElementById('w2').value = d.status; document.getElementById('w3').value = d.img_url; document.getElementById('w4').value = d.report_num; document.getElementById('w5').value = d.detail.split(" (Reported by:")[0]; }); }
-        function prepareEditIntel(d) { editingIntelId = d.id; showContent('intel').then(() => { document.getElementById('i1').value = d.name; document.getElementById('i2').value = d.residence; document.getElementById('i3').value = d.phone; document.getElementById('i4').value = d.img_url; document.getElementById('i5').value = d.detail.split(" (Recruited by:")[0]; }); }
-        function prepareEditSignal(d) { editingSignalId = d.id; showContent('signals').then(() => { document.getElementById('sig1').value = d.name; document.getElementById('sig2').value = d.phone.replace(" MHz", ""); }); }
-        function prepareEditReport(r) { editingReportId = r.id; showContent('reports').then(() => { document.getElementById('r_num').value = r.report_num; document.getElementById('r_crim_id').value = r.author_id; document.getElementById('r_img').value = r.img_url; document.getElementById('r_time').value = r.place; document.getElementById('r_extra').value = r.content; const sel = r.status ? r.status.split(' | ') : []; document.querySelectorAll('.charge-cb').forEach(cb => { if(sel.includes(cb.value)) cb.checked = true; }); }); }
+        function prepareEditOp(d) { const author = d.details ? d.details.split(" (By:")[1]?.replace(")", "") : "SYSTEM"; if(!checkOwnership(author)) return alert("لا تملك صلاحية التعديل."); editingOpId = d.id; showContent('ops').then(() => { document.getElementById('op1').value = d.name; document.getElementById('op2').value = d.place; document.getElementById('op3').value = d.status; document.getElementById('op4').value = d.details.split(" (By:")[0]; }); }
+        function prepareEditWanted(d) { const author = d.detail ? d.detail.split(" (Reported by:")[1]?.replace(")", "") : "SYSTEM"; if(!checkOwnership(author)) return alert("لا تملك صلاحية التعديل."); editingWantedId = d.id; showContent('wanted').then(() => { document.getElementById('w1').value = d.name; document.getElementById('w2').value = d.status; document.getElementById('w3').value = d.img_url; document.getElementById('w4').value = d.report_num; document.getElementById('w5').value = d.detail.split(" (Reported by:")[0]; }); }
+        function prepareEditIntel(d) { const author = d.detail ? d.detail.split(" (Recruited by:")[1]?.replace(")", "") : "SYSTEM"; if(!checkOwnership(author)) return alert("لا تملك صلاحية التعديل."); editingIntelId = d.id; showContent('intel').then(() => { document.getElementById('i1').value = d.name; document.getElementById('i2').value = d.residence; document.getElementById('i3').value = d.phone; document.getElementById('i4').value = d.img_url; document.getElementById('i5').value = d.detail.split(" (Recruited by:")[0]; }); }
+        function prepareEditSignal(d) { const author = d.detail?.split("By: ")[1] || "UNKNOWN"; if(!checkOwnership(author)) return alert("لا تملك صلاحية التعديل."); editingSignalId = d.id; showContent('signals').then(() => { document.getElementById('sig1').value = d.name; document.getElementById('sig2').value = d.phone.replace(" MHz", ""); }); }
+        function prepareEditReport(r) { const author = r.author || "SYSTEM"; if(!checkOwnership(author)) return alert("لا تملك صلاحية التعديل."); editingReportId = r.id; showContent('reports').then(() => { document.getElementById('r_num').value = r.report_num; document.getElementById('r_crim_id').value = r.author_id; document.getElementById('r_img').value = r.img_url; document.getElementById('r_time').value = r.place; document.getElementById('r_extra').value = r.content; const sel = r.status ? r.status.split(' | ') : []; document.querySelectorAll('.charge-cb').forEach(cb => { if(sel.includes(cb.value)) cb.checked = true; }); }); }
 
         async function addOp() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.op-rank-cb:checked')).map(cb => cb.value).join(','); const data = { name: document.getElementById('op1').value, place: document.getElementById('op2').value, status: document.getElementById('op3').value, details: `${document.getElementById('op4').value} (By: ${identity})`, allowed_ranks: selectedRanks || "ALL" }; if(editingOpId) { await fetch(`${SB_URL}/operations?id=eq.${editingOpId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingOpId = null; } else { await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify(data) }); } showContent('ops'); }
         async function addWanted() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; const selectedRanks = Array.from(document.querySelectorAll('.w-rank-cb:checked')).map(cb => cb.value).join(','); const data = { name: document.getElementById('w1').value, status: document.getElementById('w2').value, img_url: document.getElementById('w3').value, report_num: document.getElementById('w4').value, detail: `${document.getElementById('w5').value} (Reported by: ${identity})`, allowed_ranks: selectedRanks || "ALL" }; if(editingWantedId) { await fetch(`${SB_URL}/wanted?id=eq.${editingWantedId}`, { method: 'PATCH', headers, body: JSON.stringify(data) }); editingWantedId = null; } else { await fetch(`${SB_URL}/wanted`, { method: 'POST', headers, body: JSON.stringify(data) }); } showContent('wanted'); }
@@ -874,15 +784,26 @@
 
         async function renderAlerts(c) {
             const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers }); const data = await res.json();
-            let h = `<h3>⚠️ مركز التنبيهات</h3>`; if(isAdmin) h += `<input id="al1" placeholder="نص التنبيه"><button class="action-btn" onclick="addAlert()">إرسال</button>`;
-            data.forEach(a => { h += `<div class="report-card" style="color:orange; display: flex; justify-content: space-between;"><div><b>[ALERT]</b> ${a.text} <br><small>${a.date_str}</small></div>${isAdmin ? `<button class="del-btn" onclick="deleteItem('alerts', ${a.id})">حذف</button>` : ''}</div>`; });
+            
+            // --- التعديل هنا: السماح بالكتابة فقط للدايركتور والديبوتي ---
+            const canWriteAlert = (currentUserRank === "DIRECTOR" || currentUserRank === "DEPUTY");
+            
+            let h = `<h3>⚠️ مركز التنبيهات</h3>`; 
+            
+            if (canWriteAlert) {
+                h += `<input id="al1" placeholder="نص التنبيه"><button class="action-btn" onclick="addAlert()">إرسال</button>`;
+            } else {
+                h += `<div style="color:#555; font-size:10px; border:1px dashed #300; padding:10px; margin-bottom:15px; text-align:center;">يسمح فقط للرتب العليا (Director / Deputy) بنشر التنبيهات</div>`;
+            }
+            
+            data.forEach(a => { const author = a.text?.split(" (By: ")[1]?.replace(")", "") || "SYSTEM"; const hasPerm = checkOwnership(author); h += `<div class="report-card" style="color:orange; display: flex; justify-content: space-between;"><div><b>[ALERT]</b> ${a.text} <br><small>${a.date_str}</small></div>${hasPerm ? `<button class="del-btn" onclick="deleteItem('alerts', ${a.id}, '${author}')">حذف</button>` : ''}</div>`; });
             c.innerHTML = h;
         }
 
-        async function renderLogs(c) { if(!isAdmin) return; const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers }); const data = await res.json(); let h = `<h3>📊 سجل النشاط النظامي</h3>`; data.forEach(l => h += `<div style="font-size:11px; border-bottom:1px solid #111; padding:8px;">[${l.entry_time}] :: ACCESS :: ${l.user_name}</div>`); c.innerHTML = h; }
+        async function renderLogs(c) { const res = await fetch(`${SB_URL}/logs?select=*&order=id.desc`, { headers }); const data = await res.json(); let h = `<h3>📊 سجل النشاط النظامي</h3>`; data.forEach(l => h += `<div style="font-size:11px; border-bottom:1px solid #111; padding:8px;">[${l.entry_time}] :: ACCESS :: ${l.user_name}</div>`); c.innerHTML = h; }
 
         async function renderCodeManager(c) {
-            if (!isAdmin) return; const res = await fetch(`${SB_URL}/account_codes?select=*&order=id.desc`, { headers }); const data = await res.json();
+            const res = await fetch(`${SB_URL}/account_codes?select=*&order=id.desc`, { headers }); const data = await res.json();
             let h = `<h3>🔑 إدارة مفاتيح الوصول</h3><div style="background:rgba(20,0,0,0.5); padding:15px; border:1px solid #400; margin-bottom:20px;"><input id="new_code_val" placeholder="الكود"><select id="new_code_rank">`;
             Object.keys(RANK_DISPLAY_NAMES).forEach(r => { h += `<option value="${r}">${RANK_DISPLAY_NAMES[r]}</option>`; });
             h += `</select><button class="action-btn" onclick="generateNewAccessCode()">إصدار</button></div><table><tr><th>الكود</th><th>الرتبة</th><th>الحالة</th><th>المستخدم</th></tr>`;
@@ -891,244 +812,10 @@
         }
 
         async function addNewGlobalCharge() { const val = document.getElementById('new_charge_val').value.trim(); if(!val) return; await fetch(`${SB_URL}/charges`, { method: 'POST', headers, body: JSON.stringify({ name: val }) }); showContent('reports'); }
-        async function deleteGlobalCharge(id) { if(confirm("حذف هذه التهمة؟")) { await fetch(`${SB_URL}/charges?id=eq.${id}`, { method: 'DELETE', headers }); showContent('reports'); } }
+        async function deleteGlobalCharge(id) { if(!isAdmin) return; if(confirm("حذف هذه التهمة؟")) { await fetch(`${SB_URL}/charges?id=eq.${id}`, { method: 'DELETE', headers }); showContent('reports'); } }
         async function addAlert() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: `${document.getElementById('al1').value} (By: ${identity})`, date_str: new Date().toLocaleString('ar-EG') }) }); showContent('alerts'); }
         async function generateNewAccessCode() { const code = document.getElementById('new_code_val').value.trim(); const rank = document.getElementById('new_code_rank').value; await fetch(`${SB_URL}/account_codes`, { method: 'POST', headers, body: JSON.stringify({ code, rank, created_by: currentUserName, is_used: false }) }); showContent('manage_codes'); }
-   // --- نظام إدارة صلاحيات الكتابة (إضافة برمجية) ---
 
-// 1. تعريف مصفوفة الصلاحيات (يتم تخزينها محلياً لسهولة التحكم)
-let globalWritePermissions = JSON.parse(localStorage.getItem('write_permissions')) || {
-    ops: "ALL",
-    wanted: "ALL",
-    intel: "ALL",
-    reports: "ALL",
-    signals: "ALL",
-    alerts: "ALL"
-};
-
-// 2. دالة التحقق: هل الرتبة الحالية مسموح لها بالكتابة في هذا القسم؟
-function canUserWrite(category) {
-    const allowed = globalWritePermissions[category];
-    if (!allowed || allowed === "ALL") return true;
-    const allowedArray = allowed.split(',');
-    return allowedArray.includes(currentUserRank);
-}
-
-// 3. دالة تحديث الصلاحيات من لوحة التحكم
-window.updateWritePermission = function(category, rank, isChecked) {
-    let allowed = globalWritePermissions[category] === "ALL" ? "" : globalWritePermissions[category];
-    let allowedArray = allowed ? allowed.split(',') : [];
-
-    if (isChecked) {
-        if (!allowedArray.includes(rank)) allowedArray.push(rank);
-    } else {
-        allowedArray = allowedArray.filter(r => r !== rank);
-    }
-
-    globalWritePermissions[category] = allowedArray.length === 0 ? "ALL" : allowedArray.join(',');
-    localStorage.setItem('write_permissions', JSON.stringify(globalWritePermissions));
-};
-
-// 4. إعادة تعريف وظيفة "التحكم بالرتب" لتشمل الجدول الجديد دون حذف القديم
-const originalRenderRankManager = renderRankManager;
-renderRankManager = async function(c) {
-    // استدعاء الوظيفة الأصلية أولاً لعرض جدول الموظفين
-    await originalRenderRankManager(c);
-    
-    // إضافة جدول الصلاحيات الجديد أسفل الجدول الأصلي
-    let h = `<br><hr style="border:1px solid #200; margin: 20px 0;">`;
-    h += `<h3 style="color:var(--warn-gold);">🛡️ إعدادات صلاحيات الكتابة والإضافة</h3>`;
-    h += `<p style="font-size:11px; color:#888; margin-bottom:15px;">حدد الرتب المسموح لها "بإضافة بيانات جديدة" في كل قائمة. (عدم تحديد أي رتبة يعني السماح للجميع).</p>`;
-    
-    const categories = {
-        ops: "القضايا النشطة",
-        wanted: "قائمة المطلوبين",
-        intel: "المصادر الاستخباراتية",
-        reports: "الأرشيف والتقارير",
-        signals: "الاتصالات والترددات",
-        alerts: "مركز التنبيهات"
-    };
-
-    h += `<div style="overflow-x:auto;"><table><tr><th>القائمة / القسم</th><th>الرتب المخولة بالإضاقة</th></tr>`;
-    
-    for (let key in categories) {
-        let currentAllowed = globalWritePermissions[key].split(',');
-        h += `<tr>
-            <td style="color:var(--red); font-weight:bold;">${categories[key]}</td>
-            <td>
-                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); text-align:right; font-size:10px; gap:8px;">
-                    ${Object.keys(RANK_DISPLAY_NAMES).map(r => `
-                        <label style="cursor:pointer;"><input type="checkbox" onchange="updateWritePermission('${key}', '${r}', this.checked)" 
-                        ${currentAllowed.includes(r) ? 'checked' : ''}> ${RANK_DISPLAY_NAMES[r]}</label>
-                    `).join('')}
-                </div>
-            </td>
-        </tr>`;
-    }
-    h += `</table></div><div style="text-align:center; margin-top:15px;"><button class="action-btn" style="width:200px;" onclick="showContent('rank_manager')">تحديث وحفظ التغييرات</button></div>`;
-    
-    c.insertAdjacentHTML('beforeend', h);
-};
-
-// 5. نظام "القفل التلقائي" لنماذج الإضافة بناءً على الصلاحيات
-const categoriesToProtect = [
-    { name: 'ops', selector: 'div[style*="background: rgba(20,0,0,0.3)"]' },
-    { name: 'wanted', selector: 'div[style*="background: rgba(20,0,0,0.3)"]' },
-    { name: 'intel', selector: 'div[style*="background: rgba(20,0,0,0.3)"]' },
-    { name: 'signals', selector: 'div[style*="background: rgba(0,20,0,0.1)"]' },
-    { name: 'reports', selector: 'div[style*="background: rgba(20,0,0,0.3)"]' },
-    { name: 'alerts', selector: 'input#al1' }
-];
-
-// مراقب التغييرات في واجهة العرض لإخفاء أدوات الكتابة لمن لا يملك صلاحية
-const observer = new MutationObserver(() => {
-    categoriesToProtect.forEach(cat => {
-        if (!canUserWrite(cat.name)) {
-            const element = document.querySelector(cat.selector);
-            if (element) {
-                // إذا كانت القائمة هي التنبيهات، نتعامل مع الزر والإدخال بشكل خاص
-                if (cat.name === 'alerts') {
-                    const btn = document.querySelector('.action-btn[onclick="addAlert()"]');
-                    if (element) element.style.display = 'none';
-                    if (btn) btn.style.display = 'none';
-                } else {
-                    element.innerHTML = `<div style="padding:15px; border:1px dashed #400; color:#555; font-size:12px; text-align:center;">⚠️ رتبتك الحالية (${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank}) لا تملك صلاحية الإضافة في هذا القسم.</div>`;
-                    element.style.pointerEvents = 'none';
-                    element.style.opacity = '0.7';
-                }
-            }
-        }
-    });
-});
-
-observer.observe(document.getElementById('content-body'), { childList: true, subtree: true });
-
-// --- نهاية الإضافة الجديدة ---
-renderStats = async function(c) {
-    if (!["DIRECTOR", "DEPUTY"].includes(currentUserRank)) {
-        return c.innerHTML = "<div style='color:red; padding:20px; text-align:center;'>⛔ دخول غير مصرح</div>";
-    }
-
-    c.innerHTML = "<p style='color:#ffcc00; padding:20px; text-align:center;'>جاري تحليل الأداء والبيانات الاستخباراتية...</p>";
-
-    // تأكد من وجود المخازن
-    window.manualPoints = JSON.parse(localStorage.getItem('manual_points_db')) || {};
-    if (!window.meritSettings) {
-        window.meritSettings = JSON.parse(localStorage.getItem('merit_settings')) || {
-            report_points: 10, op_points: 15, wanted_points: 5, intel_points: 5, signal_points: 3
-        };
-    }
-
-    try {
-        const [agents, reports, ops, wanted, intelData] = await Promise.all([
-            fetch(`${SB_URL}/agents?select=*`, { headers }).then(r => r.json()),
-            fetch(`${SB_URL}/reports?select=author`, { headers }).then(r => r.json()),
-            fetch(`${SB_URL}/operations?select=details`, { headers }).then(r => r.json()),
-            fetch(`${SB_URL}/wanted?select=detail`, { headers }).then(r => r.json()),
-            fetch(`${SB_URL}/intel?select=detail,phone`, { headers }).then(r => r.json())
-        ]);
-
-        let h = `<h3 style="color:#ffcc00; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:20px;">📊 الرقابة العامة ونقاط الجدارة</h3>`;
-        h += `<div style="display: flex; flex-direction: column; gap: 15px;">`;
-
-        const processedAgents = agents.map(a => {
-            const tag = `${RANK_DISPLAY_NAMES[a.rank] || a.rank} | ${a.name}`;
-            
-            // 1. الحساب التلقائي من الجداول
-            const rCount = reports.filter(r => r.author && r.author.includes(tag)).length;
-            const oCount = ops.filter(o => o.details && o.details.includes(tag)).length;
-            const wCount = wanted.filter(w => w.detail && w.detail.includes(`(Reported by: ${tag})`)).length;
-            
-            // حساب المصادر (بشرية)
-            const sCount = intelData.filter(i => 
-                i.detail && i.detail.includes(`(Recruited by: ${tag})`) && 
-                (!i.phone || !i.phone.includes("MHz"))
-            ).length;
-            
-            // حساب الترددات (إشارات)
-            const sigCount = intelData.filter(i => 
-                i.phone && i.phone.includes("MHz") && 
-                i.detail && i.detail.includes(`By: ${tag}`)
-            ).length;
-
-            // 2. تجميع النقاط
-            const autoPoints = (rCount * window.meritSettings.report_points) + 
-                               (oCount * window.meritSettings.op_points) + 
-                               (wCount * window.meritSettings.wanted_points) + 
-                               (sCount * window.meritSettings.intel_points) + 
-                               (sigCount * window.meritSettings.signal_points);
-            
-            const manualPts = window.manualPoints[tag] || 0;
-            const total = autoPoints + manualPts;
-
-            return { ...a, tag, rCount, oCount, wCount, sCount, sigCount, total };
-        });
-
-        processedAgents.sort((a, b) => b.total - a.total);
-
-        processedAgents.forEach(a => {
-            h += `
-            <div style="background: rgba(15,15,15,0.95); border: 1px solid #333; padding: 15px; border-radius: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 10px;">
-                    <div><b style="color:#fff;">${a.name}</b><br><small style="color:#ff4444;">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</small></div>
-                    <div style="text-align: center; background: rgba(255,204,0,0.1); padding: 5px 12px; border: 1px solid #ffcc00; border-radius:4px;">
-                        <div style="color: #ffcc00; font-size: 22px; font-weight: bold;">${a.total}</div>
-                        <small style="font-size:8px; color:#888;">TOTAL POINTS</small>
-                    </div>
-                </div>
-
-                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align:center; margin-bottom:15px;">
-                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#fff;">${a.rCount}</div><div style="font-size:7px; color:#666;">تقارير</div></div>
-                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#0f0;">${a.oCount}</div><div style="font-size:7px; color:#666;">عمليات</div></div>
-                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#f33;">${a.wCount}</div><div style="font-size:7px; color:#666;">مطلوبين</div></div>
-                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#fb0;">${a.sCount}</div><div style="font-size:7px; color:#666;">مصادر</div></div>
-                    <div style="background:#0a0a0a; padding:4px; border:1px solid #1a1a1a;"><div style="color:#0cf;">${a.sigCount}</div><div style="font-size:7px; color:#666;">ترددات</div></div>
-                </div>
-
-                <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); padding:8px; border-radius:4px;">
-                    <span style="font-size:9px; color:#aaa; flex:1;">مكافأة/عقوبة يدوية:</span>
-                    <input type="number" id="manual-${a.id}" placeholder="±" style="width:50px; background:#000; color:#fff; border:1px solid #444; padding:3px; text-align:center;">
-                    <button onclick="applyManualPoints('${a.tag}', ${a.id})" style="background:#ffcc00; color:#000; border:none; padding:4px 8px; cursor:pointer; font-weight:bold; font-size:10px; border-radius:2px;">تعديل</button>
-                </div>
-            </div>`;
-        });
-
-        // لوحة الإعدادات الشاملة في الأسفل
-        h += `</div>
-        <div style="margin-top:30px; padding:15px; border:1px solid #ffcc00; background:rgba(255,204,0,0.05); border-radius:8px;">
-            <h4 style="color:#ffcc00; margin-top:0;">⚙️ إعدادات الحساب التلقائي</h4>
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:10px;">
-                <div><label style="font-size:8px;">تقرير:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.report_points}" onchange="updateMerit('report_points', this.value)"></div>
-                <div><label style="font-size:8px;">عملية:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.op_points}" onchange="updateMerit('op_points', this.value)"></div>
-                <div><label style="font-size:8px;">مطلوب:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.wanted_points}" onchange="updateMerit('wanted_points', this.value)"></div>
-                <div><label style="font-size:8px;">مصدر:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.intel_points}" onchange="updateMerit('intel_points', this.value)"></div>
-                <div><label style="font-size:8px;">تردد:</label><input type="number" style="width:100%; background:#000; color:#0f0; border:1px solid #333;" value="${window.meritSettings.signal_points}" onchange="updateMerit('signal_points', this.value)"></div>
-            </div>
-        </div>`;
-
-        c.innerHTML = h;
-
-    } catch (e) {
-        console.error(e);
-        c.innerHTML = "<div style='color:red; padding:20px; text-align:center;'>⚠️ خطأ في مزامنة البيانات الاستخباراتية</div>";
-    }
-};
-
-// وظيفة تطبيق النقاط اليدوية
-window.applyManualPoints = function(tag, id) {
-    const val = parseInt(document.getElementById(`manual-${id}`).value) || 0;
-    if (!window.manualPoints[tag]) window.manualPoints[tag] = 0;
-    window.manualPoints[tag] += val;
-    localStorage.setItem('manual_points_db', JSON.stringify(window.manualPoints));
-    renderStats(document.getElementById('content'));
-};
-
-window.updateMerit = function(k, v) {
-    window.meritSettings[k] = parseInt(v);
-    localStorage.setItem('merit_settings', JSON.stringify(window.meritSettings));
-    renderStats(document.getElementById('content'));
-};
-
- </script>
+    </script>
 </body>
 </html>
