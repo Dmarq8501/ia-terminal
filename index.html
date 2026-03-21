@@ -260,7 +260,10 @@
             background: #111; border-right: 3px solid var(--red); padding: 15px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .stat-val { font-size: 20px; font-weight: bold; color: var(--red); }
+        .stat-val { font-size: 16px; font-weight: bold; color: var(--red); }
+        .stat-group { display: flex; gap: 15px; text-align: center; }
+        .stat-item { display: flex; flex-direction: column; align-items: center; min-width: 45px; }
+        .stat-label { font-size: 8px; color: #666; text-transform: uppercase; margin-top: 2px; }
 
     </style>
 </head>
@@ -604,18 +607,74 @@
             }
         }
 
+        // --- وظيفة الإحصائيات المدمجة والمطورة ---
         async function renderStats(c) {
-            c.innerHTML = "<p style='color:red;'>جاري تحليل قاعدة البيانات...</p>";
-            const [agentsRes, reportsRes, opsRes] = await Promise.all([ fetch(`${SB_URL}/agents?select=*`, { headers }), fetch(`${SB_URL}/reports?select=author`, { headers }), fetch(`${SB_URL}/operations?select=details`, { headers }) ]);
-            const agents = await agentsRes.json(); const reports = await reportsRes.json(); const ops = await opsRes.json();
-            let h = `<h3>📊 إحصائيات الأداء المهني</h3><div style="margin-top:20px;">`;
-            agents.forEach(a => {
-                const agentFullTag = `${RANK_DISPLAY_NAMES[a.rank] || a.rank} | ${a.name}`;
-                const reportCount = reports.filter(r => r.author && r.author.includes(agentFullTag)).length;
-                const opCount = ops.filter(o => o.details && o.details.includes(agentFullTag)).length;
-                h += `<div class="stat-card"><div><b style="color:#fff;">${a.name}</b><br><small style="color:#666;">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</small></div><div style="display:flex; gap:20px; text-align:center;"><div><div class="stat-val">${reportCount}</div><div style="font-size:9px;">تقارير</div></div><div><div class="stat-val" style="color:#0f0;">${opCount}</div><div style="font-size:9px;">عمليات</div></div></div></div>`;
-            });
-            c.innerHTML = h + "</div>";
+            c.innerHTML = "<p style='color:red;'>جاري تحليل قاعدة البيانات الشاملة...</p>";
+            
+            try {
+                const [agentsRes, reportsRes, opsRes, wantedRes, intelRes] = await Promise.all([
+                    fetch(`${SB_URL}/agents?select=*`, { headers }),
+                    fetch(`${SB_URL}/reports?select=author`, { headers }),
+                    fetch(`${SB_URL}/operations?select=details`, { headers }),
+                    fetch(`${SB_URL}/wanted?select=detail`, { headers }),
+                    fetch(`${SB_URL}/intel?select=name,phone,detail`, { headers })
+                ]);
+
+                const agents = await agentsRes.json();
+                const reports = await reportsRes.json();
+                const ops = await opsRes.json();
+                const wanted = await wantedRes.json();
+                const intel = await intelRes.json();
+
+                let h = `<h3>📊 سجل الإنجازات المهنية المتكامل</h3><div style="margin-top:20px;">`;
+                
+                agents.forEach(a => {
+                    const agentName = a.name;
+                    
+                    // حساب الإحصائيات بناءً على وجود اسم الشخص في نص الكاتب
+                    const reportCount = reports.filter(r => r.author && r.author.includes(agentName)).length;
+                    const opCount = ops.filter(o => o.details && o.details.includes(agentName)).length;
+                    const wantedCount = wanted.filter(w => w.detail && w.detail.includes(agentName)).length;
+                    
+                    // التمييز بين المصادر والاتصالات (المصادر ليس لها MHz، الاتصالات لها MHz)
+                    const sourceCount = intel.filter(i => i.detail && i.detail.includes(agentName) && i.phone && !i.phone.includes("MHz")).length;
+                    const signalCount = intel.filter(i => i.detail && i.detail.includes(agentName) && i.phone && i.phone.includes("MHz")).length;
+
+                    h += `
+                    <div class="stat-card">
+                        <div>
+                            <b style="color:#fff; font-size:14px;">${agentName}</b><br>
+                            <small style="color:#666; font-size:9px;">${RANK_DISPLAY_NAMES[a.rank] || a.rank}</small>
+                        </div>
+                        <div class="stat-group">
+                            <div class="stat-item">
+                                <span class="stat-val" style="color:#fff;">${reportCount}</span>
+                                <span class="stat-label">تقارير</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-val" style="color:#0f0;">${opCount}</span>
+                                <span class="stat-label">عمليات</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-val" style="color:#f00;">${wantedCount}</span>
+                                <span class="stat-label">مطلوبين</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-val" style="color:#ffa500;">${sourceCount}</span>
+                                <span class="stat-label">مصادر</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-val" style="color:#00ffff;">${signalCount}</span>
+                                <span class="stat-label">اتصالات</span>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                
+                c.innerHTML = h + "</div>";
+            } catch (e) {
+                c.innerHTML = "<p style='color:red;'>خطأ في جلب البيانات الاستحصائية.</p>";
+            }
         }
 
         async function renderOps(c) {
@@ -785,7 +844,7 @@
         async function renderAlerts(c) {
             const res = await fetch(`${SB_URL}/alerts?select=*&order=id.desc`, { headers }); const data = await res.json();
             
-            // --- التعديل هنا: السماح بالكتابة فقط للدايركتور والديبوتي ---
+            // --- السماح بالكتابة فقط للدايركتور والديبوتي ---
             const canWriteAlert = (currentUserRank === "DIRECTOR" || currentUserRank === "DEPUTY");
             
             let h = `<h3>⚠️ مركز التنبيهات</h3>`; 
