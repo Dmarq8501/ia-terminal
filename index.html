@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DETECTIVE HUB | v21.0 CASE EDITION - UNLOCKED</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); --folder-bg: #1a1a1a; --id-bg: #222; --warn-gold: #ffcc00; }
         
@@ -284,8 +284,12 @@
         .map-scroll-container::-webkit-scrollbar { width: 10px; height: 10px; }
         .map-scroll-container::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .map-marker-circle { position: absolute; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 8px rgba(0,0,0,0.5); pointer-events: none; }
-        .map-container { width: 100%; height: 500px; border: 1px solid #333; border-radius: 4px; overflow: hidden; }
+        .map-container { width: 100%; height: 500px; border: 1px solid #333; border-radius: 4px; overflow: hidden; position: relative; }
         .map-container iframe { width: 100%; height: 100%; border: 0; }
+        
+        /* علامة الموقع (Marker) */
+        .map-marker { position: absolute; width: 12px; height: 12px; background: var(--red); border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px var(--red); transform: translate(-50%, -50%); pointer-events: auto; cursor: crosshair; }
+        .map-marker::after { content: attr(data-label); position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: black; color: white; font-size: 8px; padding: 2px 5px; white-space: nowrap; border: 1px solid var(--red); }
 
     </style>
 </head>
@@ -409,8 +413,6 @@
         const SB_URL = "https://diomqatoqyjkliujiqkb.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpb21xYXRvcXlqa2xpdWppcWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODMyMDIsImV4cCI6MjA4OTI1OTIwMn0.0BLdFMhyhvcIzIexDnycRHFFKNseHsEuFkh3hbHUPRs";
         const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" };
-        const supabaseClient = window.supabase ? window.supabase.createClient("https://diomqatoqyjkliujiqkb.supabase.co", SB_KEY) : null;
-        let mapRealtimeChannel = null, mapWheelHandler = null;
 
         let isAdmin = false; let currentUserRank = ""; let currentUserName = ""; let bannerTimeout;
         let editingReportId = null; let editingOpId = null; let editingWantedId = null; let editingIntelId = null; let editingSignalId = null;
@@ -551,11 +553,81 @@
             db.unshift({text: v, date: new Date().toLocaleString('ar-EG')});
             localStorage.setItem(key, JSON.stringify(db)); showContent(type);
         }
-        function renderMap(container) {
-            container.innerHTML = `<h3>📍 تحديد المواقع الجغرافية</h3><div class="map-paint3d-wrap"><div class="map-paint3d-canvas-area"><div class="map-paint3d-toolbar"><button class="map-paint3d-tool active" id="map-tool-pan" title="تحريك">✋</button><button class="map-paint3d-tool" id="map-tool-circle" title="دائرة">⭕</button><button class="map-paint3d-tool" id="map-tool-line" title="خط">📏</button><button class="map-paint3d-tool" id="map-tool-clear" title="مسح الكل">🗑️</button></div><div id="map-zoom-container" class="map-scroll-container" style="overflow:hidden;height:500px;border-top:1px solid #333;cursor:grab;position:relative;"><div id="map-pan-wrap" style="position:absolute;top:0;left:0;will-change:transform;"><img id="map-img" src="map.jpg" alt="Map" style="display:block;user-select:none;pointer-events:none"><svg id="map-lines-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 100 100" preserveAspectRatio="none"></svg><div id="map-markers-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div></div></div></div><div class="map-paint3d-sidebar hidden" id="map-sidebar"><div class="map-paint3d-opt-label">Color</div><div id="map-rgb-box" class="map-rgb-box"><input type="color" id="map-color-input" value="#ff0000"></div><div class="map-paint3d-opt-label">Size</div><input type="range" id="map-size-slider" class="map-size-slider" min="8" max="80" value="24"><span id="map-size-value" style="font-size:11px;color:#888">24 px</span></div></div>`;
-            setTimeout(initMapZoom, 50);
+
+        /* --- تعديل وظيفة الخريطة لدعم الحفظ والمزامنة --- */
+        async function renderMap(container) {
+            container.innerHTML = `
+                <div style="margin-bottom:10px; display:flex; gap:10px;">
+                    <button class="action-btn" style="width:auto; padding:8px 15px; font-size:10px;" onclick="syncMapMarkers()">تحديث العلامات</button>
+                    ${isAdmin ? `<button class="del-btn" style="width:auto;" onclick="clearAllMapMarkers()">مسح الخريطة للجميع</button>` : ''}
+                    <span style="font-size:9px; color:#666; align-self:center;">* انقر على أي مكان في الخريطة لوضع علامة.</span>
+                </div>
+                <div class="map-container" id="map-main-box">
+                    <iframe src="https://compromit.github.io/gta5-map/"></iframe>
+                    <div id="map-markers-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+                </div>`;
+            
+            // إضافة مستمع للنقر لوضع علامة جديدة
+            const mapBox = document.getElementById('map-main-box');
+            mapBox.addEventListener('mousedown', function(e) {
+                // نستخدم mousedown لأن iframe قد يبتلع النقر العادي
+                const rect = mapBox.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                const label = prompt("اسم الموقع أو الملاحظة:");
+                if(label) {
+                    saveMapMarker(x, y, label);
+                }
+            });
+
+            syncMapMarkers(); // جلب العلامات فوراً عند الفتح
         }
-        function closeDisplay() { document.getElementById('display-area').style.display = "none"; if (mapRealtimeChannel && supabaseClient) { supabaseClient.removeChannel(mapRealtimeChannel); mapRealtimeChannel = null; } if (mapWheelHandler) { document.removeEventListener('wheel', mapWheelHandler, { capture: true }); mapWheelHandler = null; } }
+
+        async function saveMapMarker(x, y, label) {
+            const markerData = {
+                name: label, // اسم الموقع
+                place: `X:${x.toFixed(2)}|Y:${y.toFixed(2)}`, // تخزين الإحداثيات في حقل المكان
+                status: "MARKER", // تمييزه كعلامة خريطة
+                details: `By: ${currentUserName}`,
+                allowed_ranks: "ALL"
+            };
+            
+            // نستخدم جدول operations لتخزين العلامات لعدم إنشاء جدول جديد
+            await fetch(`${SB_URL}/operations`, { method: 'POST', headers, body: JSON.stringify(markerData) });
+            syncMapMarkers();
+        }
+
+        async function syncMapMarkers() {
+            const layer = document.getElementById('map-markers-layer');
+            if(!layer) return;
+            
+            const res = await fetch(`${SB_URL}/operations?status=eq.MARKER`, { headers });
+            const data = await res.json();
+            
+            layer.innerHTML = ""; // مسح القديم
+            data.forEach(m => {
+                const coords = m.place.split('|');
+                const posX = coords[0].replace('X:', '');
+                const posY = coords[1].replace('Y:', '');
+                
+                const markerEl = document.createElement('div');
+                markerEl.className = 'map-marker';
+                markerEl.style.left = posX + "%";
+                markerEl.style.top = posY + "%";
+                markerEl.setAttribute('data-label', `${m.name} (${m.details.split(': ')[1]})`);
+                layer.appendChild(markerEl);
+            });
+        }
+
+        async function clearAllMapMarkers() {
+            if(confirm("هل أنت متأكد من مسح جميع علامات الخريطة لدى الجميع؟")) {
+                await fetch(`${SB_URL}/operations?status=eq.MARKER`, { method: 'DELETE', headers });
+                syncMapMarkers();
+            }
+        }
+
+        function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
 
         // وظيفة التحقق من ملكية المحتوى (المرسل فقط)
         function checkOwnership(authorString) {
@@ -573,7 +645,6 @@
         // --- وظائف العرض والتحكم ---
 
         async function showContent(type) {
-            if (type !== 'map') { if (mapRealtimeChannel && supabaseClient) { supabaseClient.removeChannel(mapRealtimeChannel); mapRealtimeChannel = null; } if (mapWheelHandler) { document.removeEventListener('wheel', mapWheelHandler, { capture: true }); mapWheelHandler = null; } }
             if(['stats', 'rank_manager', 'logs', 'manage_codes'].includes(type) && !isAdmin) {
                 alert("ACCESS DENIED: DIRECTOR/DEPUTY ONLY");
                 return;
@@ -668,7 +739,7 @@
                     
                     // حساب الإحصائيات بناءً على وجود اسم الشخص في نص الكاتب
                     const reportCount = reports.filter(r => r.author && r.author.includes(agentName)).length;
-                    const opCount = ops.filter(o => o.details && o.details.includes(agentName)).length;
+                    const opCount = ops.filter(o => o.details && o.details.includes(agentName) && o.status !== 'MARKER').length;
                     const wantedCount = wanted.filter(w => w.detail && w.detail.includes(agentName)).length;
                     
                     // التمييز بين المصادر والاتصالات (المصادر ليس لها MHz، الاتصالات لها MHz)
@@ -713,7 +784,7 @@
         }
 
         async function renderOps(c) {
-            const res = await fetch(`${SB_URL}/operations?select=*&order=id.desc`, { headers });
+            const res = await fetch(`${SB_URL}/operations?select=*&status=neq.MARKER&order=id.desc`, { headers });
             const data = await res.json();
             let h = `<h3>💼 القضايا الميدانية النشطة</h3>`;
             h += `<div style="background: rgba(20,0,0,0.3); padding: 15px; border: 1px solid #300; margin-bottom: 20px;"><input id="op1" placeholder="اسم القضية"><input id="op2" placeholder="موقع البلاغ"><select id="op3"><option>نشطة</option><option>مغلقة</option><option>قيد التحقيق</option></select><textarea id="op4" placeholder="الأهداف"></textarea>` + generateRankSelectorHTML('op-rank-cb') + `<button class="action-btn" onclick="addOp()">${editingOpId ? 'تحديث القضية' : 'فتح قضية'}</button></div>`;
@@ -916,166 +987,6 @@
         async function deleteGlobalCharge(id) { if(!isAdmin) return; if(confirm("حذف هذه التهمة؟")) { await fetch(`${SB_URL}/charges?id=eq.${id}`, { method: 'DELETE', headers }); showContent('reports'); } }
         async function addAlert() { const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; await fetch(`${SB_URL}/alerts`, { method: 'POST', headers, body: JSON.stringify({ text: `${document.getElementById('al1').value} (By: ${identity})`, date_str: new Date().toLocaleString('ar-EG') }) }); showContent('alerts'); }
         async function generateNewAccessCode() { const code = document.getElementById('new_code_val').value.trim(); const rank = document.getElementById('new_code_rank').value; await fetch(`${SB_URL}/account_codes`, { method: 'POST', headers, body: JSON.stringify({ code, rank, created_by: currentUserName, is_used: false }) }); showContent('manage_codes'); }
-
-        async function loadMapDrawings() {
-            try {
-                const res = await fetch(`${SB_URL}/map_drawings?select=*&order=id.asc`, { headers });
-                const data = await res.json();
-                const markers = [], lines = [];
-                (data || []).forEach(d => {
-                    if (d.drawing_type === 'marker') markers.push(d.data || d);
-                    else if (d.drawing_type === 'line') lines.push(d.data || d);
-                });
-                return { markers, lines };
-            } catch(e) { return { markers: [], lines: [] }; }
-        }
-        async function saveMapMarker(m) { try { await fetch(`${SB_URL}/map_drawings`, { method: 'POST', headers, body: JSON.stringify({ drawing_type: 'marker', data: m }) }); } catch(e) {} }
-        async function saveMapLine(l) { try { await fetch(`${SB_URL}/map_drawings`, { method: 'POST', headers, body: JSON.stringify({ drawing_type: 'line', data: l }) }); } catch(e) {} }
-        async function clearMapDrawings() { try { await fetch(`${SB_URL}/map_drawings`, { method: 'DELETE', headers }); } catch(e) {} }
-
-        function initMapZoom() {
-            const container = document.getElementById('map-zoom-container');
-            const wrap = document.getElementById('map-pan-wrap');
-            const img = document.getElementById('map-img');
-            if (!container || !wrap || !img) return;
-            let zoomLevel = 1, panX = 0, panY = 0, addMarkerMode = false, drawLineMode = false, lineStart = null;
-            let mapMarkers = [], mapLines = [];
-            let markerColor = '#ff0000', markerSize = 24;
-            function clampPan() {
-                const cw = container.offsetWidth, ch = container.offsetHeight, nw = img.naturalWidth || 800, nh = img.naturalHeight || 600;
-                const baseScale = Math.max(cw / nw, ch / nh), effScale = baseScale * zoomLevel;
-                img.style.width = (nw * effScale) + 'px'; img.style.height = (nh * effScale) + 'px';
-                const iw = nw * effScale, ih = nh * effScale;
-                const minX = (iw > cw) ? cw - iw : (cw - iw) / 2, maxX = (iw > cw) ? 0 : (cw - iw) / 2;
-                const minY = (ih > ch) ? ch - ih : (ch - ih) / 2, maxY = (ih > ch) ? 0 : (ch - ih) / 2;
-                panX = Math.max(minX, Math.min(maxX, panX)); panY = Math.max(minY, Math.min(maxY, panY));
-                wrap.style.transform = 'translate(' + panX + 'px, ' + panY + 'px)';
-            }
-            function initPos() {
-                const cw = container.offsetWidth, ch = container.offsetHeight, nw = img.naturalWidth || 800, nh = img.naturalHeight || 600;
-                const baseScale = Math.max(cw / nw, ch / nh), iw = nw * baseScale * zoomLevel, ih = nh * baseScale * zoomLevel;
-                panX = (iw > cw) ? 0 : (cw - iw) / 2; panY = (ih > ch) ? 0 : (ch - ih) / 2; clampPan();
-            }
-            function toMapPct(relX, relY) {
-                const cw = container.offsetWidth, ch = container.offsetHeight, nw = img.naturalWidth || 800, nh = img.naturalHeight || 600;
-                const baseScale = Math.max(cw / nw, ch / nh), iw = nw * baseScale * zoomLevel, ih = nh * baseScale * zoomLevel;
-                return { x: ((relX - panX) / iw) * 100, y: ((relY - panY) / ih) * 100 };
-            }
-            function renderMarkers() {
-                const layer = document.getElementById('map-markers-layer');
-                if (!layer) return;
-                layer.innerHTML = mapMarkers.map(m => {
-                    const sz = m.size || 24, col = m.color || '#ff0000';
-                    return '<div class="map-marker-circle" style="left:'+m.x+'%;top:'+m.y+'%;width:'+sz+'px;height:'+sz+'px;margin-left:'+(-sz/2)+'px;margin-top:'+(-sz/2)+'px;background:'+col+'"></div>';
-                }).join('');
-            }
-            function renderLines() {
-                const svg = document.getElementById('map-lines-layer');
-                if (!svg) return;
-                let html = mapLines.map(l => {
-                    const c = l.color || '#ff0000';
-                    return '<line x1="'+l.x1+'" y1="'+l.y1+'" x2="'+l.x2+'" y2="'+l.y2+'" stroke="'+c+'" stroke-width="0.6" stroke-opacity="0.35"/><line x1="'+l.x1+'" y1="'+l.y1+'" x2="'+l.x2+'" y2="'+l.y2+'" stroke="'+c+'" stroke-width="0.2" stroke-opacity="1" stroke-linecap="round"/>';
-                }).join('');
-                if (lineStart) { html += '<line x1="'+lineStart.x+'" y1="'+lineStart.y+'" x2="'+lineStart.x+'" y2="'+lineStart.y+'" stroke="'+markerColor+'" stroke-width="0.6" stroke-opacity="0.35" id="map-line-preview"/><line x1="'+lineStart.x+'" y1="'+lineStart.y+'" x2="'+lineStart.x+'" y2="'+lineStart.y+'" stroke="'+markerColor+'" stroke-width="0.2" stroke-opacity="1" stroke-linecap="round" id="map-line-preview2"/>'; }
-                svg.innerHTML = html;
-            }
-            async function refreshFromDb() {
-                const { markers, lines } = await loadMapDrawings();
-                mapMarkers = markers; mapLines = lines; renderMarkers(); renderLines();
-            }
-            mapWheelHandler = function(e) {
-                if (addMarkerMode || drawLineMode) return;
-                const rect = container.getBoundingClientRect();
-                if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
-                e.preventDefault();
-                zoomLevel = Math.min(4, Math.max(0.5, zoomLevel + (e.deltaY > 0 ? -0.2 : 0.2)));
-                clampPan();
-            };
-            document.addEventListener('wheel', mapWheelHandler, { passive: false, capture: true });
-            let isDragging = false, startX, startY, startPanX, startPanY;
-            function onDown(e) {
-                if (e.button !== 0) return;
-                if (addMarkerMode) return;
-                if (drawLineMode) {
-                    const rect = container.getBoundingClientRect();
-                    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                        const p = toMapPct(e.clientX - rect.left, e.clientY - rect.top);
-                        if (p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100) { lineStart = p; renderLines(); }
-                    }
-                    e.preventDefault(); return;
-                }
-                isDragging = true; startX = e.clientX; startY = e.clientY; startPanX = panX; startPanY = panY; container.style.cursor = 'grabbing'; e.preventDefault();
-            }
-            function onMove(e) {
-                if (drawLineMode && lineStart) {
-                    const rect = container.getBoundingClientRect(), p = toMapPct(e.clientX - rect.left, e.clientY - rect.top);
-                    const prev = document.getElementById('map-line-preview'), prev2 = document.getElementById('map-line-preview2');
-                    if (prev) { prev.setAttribute('x2', p.x); prev.setAttribute('y2', p.y); }
-                    if (prev2) { prev2.setAttribute('x2', p.x); prev2.setAttribute('y2', p.y); }
-                    e.preventDefault(); return;
-                }
-                if (!isDragging) return;
-                panX = startPanX + (e.clientX - startX); panY = startPanY + (e.clientY - startY); clampPan(); e.preventDefault();
-            }
-            async function onUp(e) {
-                if (e.button !== 0) return;
-                if (drawLineMode && lineStart) {
-                    const rect = container.getBoundingClientRect();
-                    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                        const p = toMapPct(e.clientX - rect.left, e.clientY - rect.top);
-                        if (Math.abs(p.x - lineStart.x) > 0.5 || Math.abs(p.y - lineStart.y) > 0.5) {
-                            const lineData = { x1: lineStart.x, y1: lineStart.y, x2: p.x, y2: p.y, color: markerColor };
-                            mapLines.push(lineData); await saveMapLine(lineData); renderLines();
-                        }
-                    }
-                    lineStart = null; renderLines(); e.preventDefault(); return;
-                }
-                if (addMarkerMode) {
-                    const rect = container.getBoundingClientRect();
-                    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                        const p = toMapPct(e.clientX - rect.left, e.clientY - rect.top);
-                        if (p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100) {
-                            const markerData = { x: p.x, y: p.y, color: markerColor, size: markerSize };
-                            mapMarkers.push(markerData); await saveMapMarker(markerData); renderMarkers();
-                        }
-                    }
-                    e.preventDefault(); return;
-                }
-                isDragging = false; container.style.cursor = 'grab';
-            }
-            container.addEventListener('mousedown', onDown);
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-            document.addEventListener('mouseleave', onUp);
-            function setActiveTool(tool) {
-                document.querySelectorAll('.map-paint3d-tool').forEach(t => t.classList.remove('active'));
-                const el = document.getElementById('map-tool-' + tool);
-                if (el) el.classList.add('active');
-                addMarkerMode = (tool === 'circle'); drawLineMode = (tool === 'line');
-                container.style.cursor = (addMarkerMode || drawLineMode) ? 'crosshair' : 'grab';
-                lineStart = null; renderLines();
-                document.getElementById('map-sidebar').classList.toggle('hidden', tool === 'pan' || tool === 'clear');
-            }
-            setTimeout(async function() {
-                await refreshFromDb();
-                const rgbBox = document.getElementById('map-rgb-box'), colorInput = document.getElementById('map-color-input');
-                const sizeSlider = document.getElementById('map-size-slider'), sizeValue = document.getElementById('map-size-value');
-                if (rgbBox) rgbBox.style.background = markerColor;
-                if (colorInput) colorInput.oninput = colorInput.onchange = function() { markerColor = this.value; if (rgbBox) rgbBox.style.background = markerColor; };
-                if (sizeSlider) { sizeSlider.value = markerSize; sizeSlider.oninput = function() { markerSize = parseInt(this.value); if (sizeValue) sizeValue.textContent = markerSize + ' px'; }; }
-                document.getElementById('map-tool-pan').onclick = () => setActiveTool('pan');
-                document.getElementById('map-tool-circle').onclick = () => setActiveTool('circle');
-                document.getElementById('map-tool-line').onclick = () => setActiveTool('line');
-                document.getElementById('map-tool-clear').onclick = async function() { await clearMapDrawings(); mapMarkers = []; mapLines = []; renderMarkers(); renderLines(); setActiveTool('pan'); };
-                setActiveTool('pan');
-                if (supabaseClient) {
-                    if (mapRealtimeChannel) supabaseClient.removeChannel(mapRealtimeChannel);
-                    mapRealtimeChannel = supabaseClient.channel('map_drawings').on('postgres_changes', { event: '*', schema: 'public', table: 'map_drawings' }, () => refreshFromDb()).subscribe();
-                }
-                document.addEventListener('beforeunload', () => { if (mapWheelHandler) document.removeEventListener('wheel', mapWheelHandler, { capture: true }); });
-            }, 100);
-            if (img.complete) initPos(); else img.addEventListener('load', initPos);
-        }
 
     </script>
 <style>
