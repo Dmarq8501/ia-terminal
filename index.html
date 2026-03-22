@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DETECTIVE HUB | v21.0 CASE EDITION - UNLOCKED</title>
+
     <style>
         :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); --folder-bg: #1a1a1a; --id-bg: #222; --warn-gold: #ffcc00; }
         
@@ -876,5 +877,180 @@
         async function generateNewAccessCode() { const code = document.getElementById('new_code_val').value.trim(); const rank = document.getElementById('new_code_rank').value; await fetch(`${SB_URL}/account_codes`, { method: 'POST', headers, body: JSON.stringify({ code, rank, created_by: currentUserName, is_used: false }) }); showContent('manage_codes'); }
 
     </script>
+<style>
+    :root {
+        --rs-red: #900000;
+        --rs-bg: #030303;
+        --rs-font: 'Inter', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    #rs-pro-loader {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: var(--rs-bg);
+        z-index: 999999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 1.2s cubic-bezier(0.7, 0, 0.3, 1), visibility 1.2s;
+        overflow: hidden;
+    }
+
+    /* تأثير خطوط الشاشة الاحترافي */
+    #rs-pro-loader::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+        background-size: 100% 4px;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .rs-content {
+        position: relative;
+        z-index: 20;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: rs-fade-in 0.8s forwards 0.2s;
+    }
+
+    @keyframes rs-fade-in {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .rs-header {
+        margin-bottom: 50px;
+    }
+
+    .rs-logo-text {
+        color: #fff;
+        font-family: var(--rs-font);
+        font-weight: 200; /* خط رفيع وفخم */
+        letter-spacing: 18px;
+        font-size: clamp(24px, 5vw, 32px);
+        text-transform: uppercase;
+        margin: 0;
+        position: relative;
+    }
+
+    .rs-logo-text span {
+        color: var(--rs-red);
+        font-weight: 800;
+    }
+
+    .rs-loader-wrapper {
+        width: 280px;
+        margin: 0 auto;
+    }
+
+    /* عداد النسبة المئوية */
+    .rs-counter {
+        font-family: 'Courier New', monospace;
+        color: var(--rs-red);
+        font-size: 12px;
+        margin-bottom: 8px;
+        text-align: right;
+        letter-spacing: 2px;
+    }
+
+    .rs-progress-track {
+        width: 100%;
+        height: 1px; /* خط نحيف جداً وأنيق */
+        background: rgba(255,255,255,0.05);
+        position: relative;
+    }
+
+    .rs-progress-bar {
+        position: absolute;
+        height: 100%;
+        width: 0%;
+        background: var(--rs-red);
+        box-shadow: 0 0 15px var(--rs-red);
+        transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+    }
+
+    .rs-terminal-msg {
+        font-family: 'Courier New', monospace;
+        font-size: 9px;
+        color: #444;
+        margin-top: 15px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    /* تأثير الوميض الخفيف عند الانتهاء */
+    .rs-access-granted {
+        color: #00ff00 !important;
+        text-shadow: 0 0 8px rgba(0,255,0,0.5);
+    }
+</style>
+
+<div id="rs-pro-loader">
+    <div class="rs-content">
+        <div class="rs-header">
+            <h1 class="rs-logo-text">RED <span>STORM</span></h1>
+        </div>
+
+        <div class="rs-loader-wrapper">
+            <div class="rs-counter" id="pc-count">00%</div>
+            <div class="rs-progress-track">
+                <div id="pc-bar" class="rs-progress-bar"></div>
+            </div>
+            <div id="pc-msg" class="rs-terminal-msg">INITIALIZING SECURE UPLINK...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const bar = document.getElementById('pc-bar');
+        const count = document.getElementById('pc-count');
+        const msg = document.getElementById('pc-msg');
+        const loader = document.getElementById('rs-pro-loader');
+
+        const logs = [
+            "Connecting to core...",
+            "Validating protocols...",
+            "Syncing database...",
+            "Authorization confirmed."
+        ];
+
+        let val = 0;
+        const speed = 400; 
+
+        const update = setInterval(() => {
+            val += Math.floor(Math.random() * 12) + 2;
+            if (val >= 100) val = 100;
+
+            // تحديث الشريط والنسبة
+            bar.style.width = val + "%";
+            count.innerText = val.toString().padStart(2, '0') + "%";
+            
+            // تحديث الرسائل
+            let idx = Math.floor((val / 100) * logs.length);
+            if(logs[idx]) msg.innerText = logs[idx];
+
+            if (val === 100) {
+                clearInterval(update);
+                msg.classList.add('rs-access-granted');
+                msg.innerText = "ACCESS GRANTED";
+                
+                // خروج احترافي (تلاشي مع تكبير بسيط)
+                setTimeout(() => {
+                    loader.style.opacity = "0";
+                    loader.style.transform = "scale(1.05)";
+                    setTimeout(() => {
+                        loader.style.visibility = "hidden";
+                    }, 1200);
+                }, 1000);
+            }
+        }, speed);
+    })();
+</script>
+
 </body>
 </html>
