@@ -2,11 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
 
-‏<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-‏<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-‏<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
-‏<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -422,6 +421,20 @@
 
         let tempRank = ""; let verifiedCodeData = null; 
 
+        // --- وظيفة التحقق من ملكية البيانات للتعديل أو الحذف ---
+        function checkOwnership(authorString) {
+            if (!authorString) return false;
+            // السماح للمدراء (Director/Deputy) بحذف أي شيء
+            if (currentUserRank === "DIRECTOR" || currentUserRank === "DEPUTY") return true;
+            
+            // استخراج اسم المستخدم من نص المؤلف (الذي يخزن عادة بصيغة Rank | Name)
+            let authorName = authorString;
+            if (authorString.includes('|')) {
+                authorName = authorString.split('|')[1].trim();
+            }
+            return currentUserName === authorName;
+        }
+
         // --- وظائف الهوية والدخول ---
         function switchAuthMode(mode) {
             const loginF = document.getElementById('login-fields'); const regF = document.getElementById('register-fields');
@@ -549,9 +562,9 @@
             db.unshift({text: v, date: new Date().toLocaleString('ar-EG')});
             localStorage.setItem(key, JSON.stringify(db)); showContent(type);
         }
-// --- دالة الخريطة المطورة مع المزامنة والحماية ---
+
+     // --- دالة الخريطة المطورة مع المزامنة الفورية والحذف الفردي وتسمية الموقع ---
 async function renderMap(container) {
-    // 1. التحقق من الرتبة (فقط الدايركتور والنائب يمكنهم الرسم)
     const isAuthorizedToDraw = (currentUserRank === "DIRECTOR" || currentUserRank === "DEPUTY");
 
     container.innerHTML = `
@@ -569,12 +582,7 @@ async function renderMap(container) {
         <div id="leaflet-map" style="width:100%; height:600px; background:#050505; border:1px solid #333;"></div>
     `;
 
-    // 2. إعداد الخريطة بنظام إحداثيات GTA
-    map = L.map('leaflet-map', {
-        crs: L.CRS.Simple,
-        minZoom: -3
-    });
-
+    map = L.map('leaflet-map', { crs: L.CRS.Simple, minZoom: -3 });
     const bounds = [[0, 0], [8192, 8192]]; 
     L.imageOverlay('https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV_ATLUS_8192x8192.png', bounds).addTo(map);
     map.fitBounds(bounds);
@@ -582,7 +590,6 @@ async function renderMap(container) {
     drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
 
-    // 3. تفعيل أدوات الرسم للمخولين فقط
     if (isAuthorizedToDraw) {
         const drawControl = new L.Control.Draw({
             edit: { featureGroup: drawnItems, remove: true },
@@ -590,96 +597,98 @@ async function renderMap(container) {
         });
         map.addControl(drawControl);
 
-        // عند الانتهاء من الرسم: الحفظ في السيرفر فوراً
         map.on(L.Draw.Event.CREATED, async function (event) {
             const layer = event.layer;
             const color = document.getElementById('draw-color').value;
             const opacity = document.getElementById('draw-opacity').value;
             
-            if (layer.setStyle) {
-                layer.setStyle({ color: color, fillColor: color, fillOpacity: opacity });
-            }
+            // طلب تسمية الموقع
+            const locationName = prompt("أدخل مسمى لهذا الموقع (اختياري):") || "موقع محدد";
+
+            if (layer.setStyle) layer.setStyle({ color: color, fillColor: color, fillOpacity: opacity });
 
             const drawingData = {
                 type: event.layerType,
-                data: (event.layerType === 'circle') 
-                      ? { latlng: layer.getLatLng(), radius: layer.getRadius() } 
-                      : layer.getLatLngs(),
-                options: { color: color, fillColor: color, fillOpacity: parseFloat(opacity), weight: 2 },
+                data: (event.layerType === 'circle') ? { latlng: layer.getLatLng(), radius: layer.getRadius() } : layer.getLatLngs(),
+                options: { 
+                    color: color, 
+                    fillColor: color, 
+                    fillOpacity: parseFloat(opacity), 
+                    weight: 2,
+                    location_name: locationName // حفظ الاسم في الخيارات
+                },
                 created_by: `${RANK_DISPLAY_NAMES[currentUserRank]} | ${currentUserName}`
             };
 
-            // إرسال البيانات لـ Supabase
-            await fetch(`${SB_URL}/map_drawings`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(drawingData)
-            });
-            
-            drawnItems.addLayer(layer);
+            await fetch(`${SB_URL}/map_drawings`, { method: 'POST', headers, body: JSON.stringify(drawingData) });
+            loadSavedDrawings(); // تحديث فوري
         });
 
-        // حذف الرسم من السيرفر عند حذفه من الخريطة
         map.on(L.Draw.Event.DELETED, async function (event) {
-            // ملاحظة: للحذف الاحترافي يفضل ربط كل رسم بـ ID، حالياً سيقوم بمسح الكل في السيرفر لتبسيط العملية
-            // أو يمكنك عمل دالة مخصصة لمسح آخر رسم.
-            if(confirm("سيتم حذف جميع التحديدات من قاعدة البيانات للجميع، هل أنت متأكد؟")) {
+            if(confirm("هل تريد مسح جميع الرسومات من السيرفر للجميع؟")) {
                 await fetch(`${SB_URL}/map_drawings?id=gt.0`, { method: 'DELETE', headers });
             }
         });
     }
 
-    // 4. تحميل البيانات للجميع (المزامنة)
     loadSavedDrawings();
-
-    // تحديث تلقائي كل 7 ثوانٍ لجلب أي تحديثات جديدة من القادة الآخرين
     if (!window.mapSyncInterval) {
         window.mapSyncInterval = setInterval(loadSavedDrawings, 7000);
     }
 }
 
-// دالة جلب الرسومات وعرضها
 async function loadSavedDrawings() {
     try {
         const res = await fetch(`${SB_URL}/map_drawings?select=*`, { headers });
         const data = await res.json();
-        
-        // تنظيف الخريطة قبل إعادة الرسم لمنع التكرار
         drawnItems.clearLayers();
-        
         data.forEach(d => {
             let layer;
-            if (d.type === 'polygon') {
-                layer = L.polygon(d.data, d.options);
-            } else if (d.type === 'rectangle') {
-                layer = L.rectangle(d.data, d.options);
-            } else if (d.type === 'circle') {
-                layer = L.circle(d.data.latlng, { radius: d.data.radius, ...d.options });
-            }
+            if (d.type === 'polygon') layer = L.polygon(d.data, d.options);
+            else if (d.type === 'rectangle') layer = L.rectangle(d.data, d.options);
+            else if (d.type === 'circle') layer = L.circle(d.data.latlng, { radius: d.data.radius, ...d.options });
             
             if(layer) {
-                layer.bindPopup(`<b style="color:red">بواسطة:</b><br>${d.created_by}`);
+                const isAuthorized = (currentUserRank === "DIRECTOR" || currentUserRank === "DEPUTY");
+                const locName = d.options.location_name || "موقع محدد";
+                
+                let popupContent = `<div style="text-align:center; font-family:monospace; min-width:120px;">
+                    <b style="color:var(--red); font-size:14px; border-bottom:1px solid #444; display:block; padding-bottom:5px; margin-bottom:5px;">${locName}</b>
+                    <small style="color:#888;">المسؤول: ${d.created_by}</small><br>`;
+                
+                if(isAuthorized) {
+                    popupContent += `<button onclick="deleteSingleDrawing(${d.id})" style="background:red; color:white; border:none; padding:5px 10px; margin-top:10px; cursor:pointer; font-weight:bold; width:100%; font-size:10px;">حذف التحديد</button>`;
+                }
+                
+                popupContent += `</div>`;
+                layer.bindPopup(popupContent);
                 drawnItems.addLayer(layer);
             }
         });
-    } catch(e) { console.error("Map sync error", e); }
+    } catch(e) { console.error("Realtime map sync error", e); }
+}
+
+async function deleteSingleDrawing(drawingId) {
+    if(confirm("هل أنت متأكد من حذف هذا التحديد نهائياً للجميع؟")) {
+        try {
+            await fetch(`${SB_URL}/map_drawings?id=eq.${drawingId}`, { method: 'DELETE', headers });
+            loadSavedDrawings();
+        } catch(e) { alert("حدث خطأ أثناء محاولة الحذف."); }
+    }
 }
 
 
-
-        // --- وظيفة الحذف المطورة مع خصم النقاط التلقائي ---
+        // --- وظيفة الحذف المطورة مع خصم النقاط التلقائي والحماية ---
         async function deleteItem(table, id, authorString) { 
             if(!checkOwnership(authorString)) return alert("عذراً، لا يمكنك حذف هذا العنصر لأنك لست كاتبه.");
             
-            if(confirm("تأكيد مسح البيانات؟ سيتم خصم النقاط تلقائياً في حال وجودها.")) { 
+            if(confirm("تأكيد مسح البيانات؟ سيتم خصم النقاط تلقائياً.")) { 
                 let username = authorString;
                 if (authorString.includes('|')) {
                     username = authorString.split('|')[1].trim();
                 }
 
-                // تنفيذ منطق الخصم التلقائي بناءً على إعدادات لوحة التحكم
                 await deductPointsOnDelete(table, username);
-
                 await fetch(`${SB_URL}/${table}?id=eq.${id}`, { method: 'DELETE', headers }); 
                 showContent(table); 
             } 
@@ -687,33 +696,16 @@ async function loadSavedDrawings() {
 
         async function deductPointsOnDelete(table, username) {
             try {
-                // جلب إعدادات النقاط من لوحة التحكم (محفوظة في localStorage) لضمان أن الخصم يساوي الإضافة تماماً
                 const cfg = JSON.parse(localStorage.getItem('points_config') || '{"report":5,"wanted":5,"source":10,"op":5,"signal":3}');
                 let pointsToDeduct = 0;
-
-                // تحديد القيمة المراد خصمها بناءً على نوع الجدول والقيم المعرفة في الإعدادات (cfg)
-                if (table === 'operations') {
-                    pointsToDeduct = cfg.op;
-                } else if (table === 'wanted') {
-                    pointsToDeduct = cfg.wanted;
-                } else if (table === 'reports') {
-                    pointsToDeduct = cfg.report;
-                } else if (table === 'intel') {
-                    // التمييز بين المصادر والاتصالات في جدول intel
+                if (table === 'operations') pointsToDeduct = cfg.op;
+                else if (table === 'wanted') pointsToDeduct = cfg.wanted;
+                else if (table === 'reports') pointsToDeduct = cfg.report;
+                else if (table === 'intel') {
                     const currentTitle = document.querySelector('#display-area h3')?.innerText || "";
-                    if (currentTitle.includes("الاتصالات")) {
-                        pointsToDeduct = cfg.signal;
-                    } else {
-                        pointsToDeduct = cfg.source;
-                    }
-                } else if (table === 'alerts') {
-                    // التنبيهات عادة لا تمنح نقاطاً ولكن تم وضعها هنا للاحتياط
-                    pointsToDeduct = 0;
+                    pointsToDeduct = currentTitle.includes("الاتصالات") ? cfg.signal : cfg.source;
                 }
-
-                if (pointsToDeduct > 0) {
-                    await updateAgentPoints(username, -pointsToDeduct);
-                }
+                if (pointsToDeduct > 0) await updateAgentPoints(username, -pointsToDeduct);
             } catch(e) { console.error("Auto-deduction failed", e); }
         }
 
@@ -925,7 +917,7 @@ async function loadSavedDrawings() {
             } catch(e) { console.error("Points update failed", e); }
         }
 
-        // --- تعديل وظائف الإضافة لتشمل النقاط التلقائية المركزية ---
+        // --- وظائف الإضافة لتشمل النقاط التلقائية المركزية ---
 
         async function addOp() { 
             const identity = `${RANK_DISPLAY_NAMES[currentUserRank] || currentUserRank} | ${currentUserName}`; 
