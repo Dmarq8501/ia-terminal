@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+
+‏<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+‏<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+‏<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+‏<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DETECTIVE HUB |  CASE EDITION - UNLOCKED</title>
@@ -542,17 +549,123 @@
             db.unshift({text: v, date: new Date().toLocaleString('ar-EG')});
             localStorage.setItem(key, JSON.stringify(db)); showContent(type);
         }
-        function renderMap(container) {
-            container.innerHTML = `<div class="map-container"><iframe src="https://compromit.github.io/gta5-map/"></iframe></div>`;
-        }
-        function closeDisplay() { document.getElementById('display-area').style.display = "none"; }
+// --- دالة الخريطة المطورة مع المزامنة والحماية ---
+async function renderMap(container) {
+    // 1. التحقق من الرتبة (فقط الدايركتور والنائب يمكنهم الرسم)
+    const isAuthorizedToDraw = (currentUserRank === "DIRECTOR" || currentUserRank === "DEPUTY");
 
-        // وظيفة التحقق من ملكية المحتوى (المرسل فقط)
-        function checkOwnership(authorString) {
-            if (isAdmin) return true; // المدير والنائب دائماً يملكون صلاحية
-            if (!authorString) return false;
-            return authorString.includes(currentUserName);
-        }
+    container.innerHTML = `
+        <div id="map-controls" style="background:#111; padding:10px; border:1px solid var(--red); display:${isAuthorizedToDraw ? 'flex' : 'none'}; gap:15px; align-items:center; margin-bottom:5px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:10px; color:#888;">اللون:</label>
+                <input type="color" id="draw-color" value="#ff0000" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:10px; color:#888;">الشفافية:</label>
+                <input type="range" id="draw-opacity" min="0.1" max="1" step="0.1" value="0.5" style="width:70px;">
+            </div>
+            <span style="font-size:9px; color:var(--red); margin-right:auto; letter-spacing:1px;">COMMANDER OVERRIDE ACTIVE</span>
+        </div>
+        <div id="leaflet-map" style="width:100%; height:600px; background:#050505; border:1px solid #333;"></div>
+    `;
+
+    // 2. إعداد الخريطة بنظام إحداثيات GTA
+    map = L.map('leaflet-map', {
+        crs: L.CRS.Simple,
+        minZoom: -3
+    });
+
+    const bounds = [[0, 0], [8192, 8192]]; 
+    L.imageOverlay('https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV_ATLUS_8192x8192.png', bounds).addTo(map);
+    map.fitBounds(bounds);
+
+    drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    // 3. تفعيل أدوات الرسم للمخولين فقط
+    if (isAuthorizedToDraw) {
+        const drawControl = new L.Control.Draw({
+            edit: { featureGroup: drawnItems, remove: true },
+            draw: { polyline: false, marker: false, circlemarker: false, polygon: true, rectangle: true, circle: true }
+        });
+        map.addControl(drawControl);
+
+        // عند الانتهاء من الرسم: الحفظ في السيرفر فوراً
+        map.on(L.Draw.Event.CREATED, async function (event) {
+            const layer = event.layer;
+            const color = document.getElementById('draw-color').value;
+            const opacity = document.getElementById('draw-opacity').value;
+            
+            if (layer.setStyle) {
+                layer.setStyle({ color: color, fillColor: color, fillOpacity: opacity });
+            }
+
+            const drawingData = {
+                type: event.layerType,
+                data: (event.layerType === 'circle') 
+                      ? { latlng: layer.getLatLng(), radius: layer.getRadius() } 
+                      : layer.getLatLngs(),
+                options: { color: color, fillColor: color, fillOpacity: parseFloat(opacity), weight: 2 },
+                created_by: `${RANK_DISPLAY_NAMES[currentUserRank]} | ${currentUserName}`
+            };
+
+            // إرسال البيانات لـ Supabase
+            await fetch(`${SB_URL}/map_drawings`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(drawingData)
+            });
+            
+            drawnItems.addLayer(layer);
+        });
+
+        // حذف الرسم من السيرفر عند حذفه من الخريطة
+        map.on(L.Draw.Event.DELETED, async function (event) {
+            // ملاحظة: للحذف الاحترافي يفضل ربط كل رسم بـ ID، حالياً سيقوم بمسح الكل في السيرفر لتبسيط العملية
+            // أو يمكنك عمل دالة مخصصة لمسح آخر رسم.
+            if(confirm("سيتم حذف جميع التحديدات من قاعدة البيانات للجميع، هل أنت متأكد؟")) {
+                await fetch(`${SB_URL}/map_drawings?id=gt.0`, { method: 'DELETE', headers });
+            }
+        });
+    }
+
+    // 4. تحميل البيانات للجميع (المزامنة)
+    loadSavedDrawings();
+
+    // تحديث تلقائي كل 7 ثوانٍ لجلب أي تحديثات جديدة من القادة الآخرين
+    if (!window.mapSyncInterval) {
+        window.mapSyncInterval = setInterval(loadSavedDrawings, 7000);
+    }
+}
+
+// دالة جلب الرسومات وعرضها
+async function loadSavedDrawings() {
+    try {
+        const res = await fetch(`${SB_URL}/map_drawings?select=*`, { headers });
+        const data = await res.json();
+        
+        // تنظيف الخريطة قبل إعادة الرسم لمنع التكرار
+        drawnItems.clearLayers();
+        
+        data.forEach(d => {
+            let layer;
+            if (d.type === 'polygon') {
+                layer = L.polygon(d.data, d.options);
+            } else if (d.type === 'rectangle') {
+                layer = L.rectangle(d.data, d.options);
+            } else if (d.type === 'circle') {
+                layer = L.circle(d.data.latlng, { radius: d.data.radius, ...d.options });
+            }
+            
+            if(layer) {
+                layer.bindPopup(`<b style="color:red">بواسطة:</b><br>${d.created_by}`);
+                drawnItems.addLayer(layer);
+            }
+        });
+    } catch(e) { console.error("Map sync error", e); }
+}
+
+
 
         // --- وظيفة الحذف المطورة مع خصم النقاط التلقائي ---
         async function deleteItem(table, id, authorString) { 
