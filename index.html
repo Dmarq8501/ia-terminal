@@ -1548,6 +1548,7 @@ async function deleteMember(id, gangId) {
 }
 
  async function downloadReportAsPDF(id, text, author, date) {
+  // فك الترميز للنصوص
   text = decodeURIComponent(text);
   author = decodeURIComponent(author);
   date = decodeURIComponent(date);
@@ -1555,40 +1556,57 @@ async function deleteMember(id, gangId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // شعار رسمي في الأعلى
-  const logoUrl = "https://cdn.discordapp.com/attachments/1156229090324529303/1485986660830416946/IMG_0320.png?ex=69c3dc6c&is=69c28aec&hm=df5d8dffe84e4c1b7e4049e18c5385a25d28da7cc42efec4914e6864c840330a&"; 
+  // إضافة شعار رسمي
+  const logoUrl = "https://cdn.discordapp.com/attachments/1156229090324529303/1485986660830416946/IMG_0320.png?ex=69c3dc6c&is=69c28aec&hm=df5d8dffe84e4c1b7e4049e18c5385a25d28da7cc42efec4914e6864c840330a&"; // ضع رابط شعارك هنا
   const logo = await loadImage(logoUrl);
-  doc.addImage(logo, "PNG", 10, 10, 40, 40);
+  doc.addImage(logo, "PNG", 10, 10, 30, 30);
 
   // عنوان رسمي
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.text("تقرير رسمي موجّه لرئاسة الشرطة", 105, 20, { align: "center" });
 
   // خط فاصل
   doc.setDrawColor(0);
   doc.line(10, 30, 200, 30);
 
-  // محتويات التقرير
+  // بيانات أساسية
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text(`رقم التقرير: ${id}`, 20, 45);
-  doc.text(`التاريخ: ${date}`, 20, 55);
-  doc.text(`الكاتب: ${author}`, 20, 65);
+  doc.text(`رقم التقرير: ${id}`, 20, 40);
+  doc.text(`التاريخ: ${date}`, 20, 50);
+  doc.text(`الكاتب: ${author}`, 20, 60);
 
+  // محتويات التقرير
   doc.setFont("helvetica", "bold");
-  doc.text("محتويات التقرير:", 20, 80);
+  doc.text("محتويات التقرير:", 20, 75);
   doc.setFont("helvetica", "normal");
-  doc.text(text, 20, 90, { maxWidth: 170 });
+  doc.text(text, 20, 85, { maxWidth: 170 });
 
   // توقيع المنشئ في الأسفل
   doc.setFont("helvetica", "italic");
-  doc.text("توقيع المنشئ:", 20, 250);
+  doc.text("توقيع المنشئ:", 20, 270);
   doc.setFont("helvetica", "bold");
-  doc.text(author, 60, 250);
+  doc.text(author, 60, 270);
 
   // حفظ الملف
   doc.save(`report_${id}.pdf`);
+}
+
+function loadImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.src = url;
+  });
 }
 
   </script>
