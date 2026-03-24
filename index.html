@@ -1228,7 +1228,10 @@ async function deleteSingleDrawing(drawingId) {
                 <div style="margin-top:10px; display:flex; gap:5px;" onclick="event.stopPropagation()">
                   ${hasPerm ? `<button class="del-btn" onclick="deleteItem('reports',${r.id}, '${authorPart}')">حذف</button>` : ''}
                   ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}
-                  <button class="pdf-btn" style="font-size:10px; padding:2px 6px;" onclick="downloadReportAsPDF(${r.id}, \`${r.content}\`, \`${authorPart}\`, \`${r.date_str}\`)">📄 PDF</button>
+                  <button class="pdf-btn" style="font-size:10px; padding:2px 6px;" 
+                          onclick="downloadReportAsPDF(${r.id}, encodeURIComponent(r.content), encodeURIComponent(authorPart), encodeURIComponent(r.date_str))">
+                    📄 PDF
+                  </button>
                 </div>
               </div>
             </div>`;
@@ -1552,7 +1555,7 @@ async function deleteMember(id, gangId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const logoUrl = "https://cdn.discordapp.com/attachments/1156229090324529303/1485986660830416946/IMG_0320.png?ex=69c3dc6c&is=69c28aec&hm=df5d8dffe84e4c1b7e4049e18c5385a25d28da7cc42efec4914e6864c840330a&"; 
+  const logoUrl = "https://cdn.discordapp.com/attachments/1156229090324529303/1485986660830416946/IMG_0320.png?ex=69c3dc6c&is=69c28aec&hm=df5d8dffe84e4c1b7e4049e18c5385a25d28da7cc42efec4914e6864c840330a&"; // ضع رابط شعارك هنا
   const logo = await loadImage(logoUrl);
   doc.addImage(logo, "PNG", 10, 10, 40, 40);
 
@@ -1562,6 +1565,7 @@ async function deleteMember(id, gangId) {
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
+
   doc.text(`المحتوى: ${text}`, 20, 60, { maxWidth: 170 });
   doc.text(`الكاتب: ${author}`, 20, 100);
   doc.text(`التاريخ: ${date}`, 20, 115);
