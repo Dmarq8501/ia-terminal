@@ -3,6 +3,7 @@
 <head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1242,6 +1243,7 @@ async function deleteSingleDrawing(drawingId) {
 }
 
 
+
         async function suspendAgent(agentName) {
             const reason = prompt("يرجى كتابة سبب الإيقاف عن العمل:"); if(!reason) return;
             try { await fetch(`${SB_URL}/users?username=eq.${agentName}`, { method: 'PATCH', headers, body: JSON.stringify({ is_suspended: true, suspension_reason: reason }) }); alert(`تم إيقاف المحقق ${agentName}.`); showContent('agents'); } catch(e) { alert("فشلت العملية."); }
@@ -1547,8 +1549,7 @@ async function deleteMember(id, gangId) {
     loadMembers(gangId);
 }
 
- async function downloadReportAsPDF(id, text, author, date) {
-  // فك الترميز للنصوص
+async function downloadReportAsPDF(id, text, author, date) {
   text = decodeURIComponent(text);
   author = decodeURIComponent(author);
   date = decodeURIComponent(date);
@@ -1556,7 +1557,7 @@ async function deleteMember(id, gangId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // إضافة شعار رسمي
+  // شعار رسمي
   const logoUrl = "https://cdn.discordapp.com/attachments/1156229090324529303/1485986660830416946/IMG_0320.png?ex=69c3dc6c&is=69c28aec&hm=df5d8dffe84e4c1b7e4049e18c5385a25d28da7cc42efec4914e6864c840330a&"; // ضع رابط شعارك هنا
   const logo = await loadImage(logoUrl);
   doc.addImage(logo, "PNG", 10, 10, 30, 30);
@@ -1608,6 +1609,7 @@ function loadImage(url) {
     img.src = url;
   });
 }
+
 
   </script>
 </body>
