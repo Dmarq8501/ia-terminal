@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-‏<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -12,37 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DETECTIVE HUB |  CASE EDITION - UNLOCKED</title>
     <style>
-#report-content {
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    background: #fff;
-    color: #000;
-}
 
-.pdf-header h2 {
-    text-align: center;
-    margin-bottom: 5px;
-}
-
-.pdf-header p {
-    text-align: center;
-    margin-top: 0;
-    font-size: 14px;
-}
-
-.pdf-info p {
-    margin: 3px 0;
-}
-
-.signature {
-    margin-top: 50px;
-}
-
-.signature .line {
-    width: 200px;
-    border-bottom: 1px solid #000;
-    margin-top: 10px;
-}
         /* [نفس التنسيقات الأصلية بدون تغيير] */
         :root { --red: #ff0000; --bg: #050505; --panel: rgba(10, 0, 0, 0.95); --glow: 0 0 15px rgba(255, 0, 0, 0.3); --folder-bg: #1a1a1a; --id-bg: #222; --warn-gold: #ffcc00; }
         
@@ -390,41 +362,10 @@
             <div id="status-manager-btn" class="category-box" onclick="showContent('status_manager')" style="border: 1px solid #00ff00;"><span class="icon">👤</span><h3>حالة المحقق</h3></div>
         </div>
 
-<!-- وضعه داخل display-area -->
-<div id="display-area">
-    <span class="close-btn" onclick="closeDisplay()">TERMINATE VIEW [ESC]</span>
-    
-    <!-- إضافة جديدة: تغليف التقرير -->
-    <div id="report-content">
-        <!-- الهيدر الرسمي -->
-        <div class="pdf-header">
-            <h2>DETECTIVE DEPARTMENT</h2>
-            <p>Official Investigation Report</p>
-        </div>
-
-        <!-- بيانات القضية -->
-        <div class="pdf-info">
-            <p><strong>رقم القضية:</strong> <span id="case-id"></span></p>
-            <p><strong>اسم المحقق:</strong> <span id="officer-name"></span></p>
-            <p><strong>الرتبة:</strong> <span id="officer-rank"></span></p>
-            <p><strong>التاريخ:</strong> <span id="report-date"></span></p>
-        </div>
-
-        <hr>
-
-        <!-- محتوى التقرير الحالي -->
-        <div id="content-body"></div>
-
-        <!-- توقيع المحقق -->
-        <div class="signature">
-            <p>توقيع المحقق:</p>
-            <div class="line"></div>
-        </div>
-
-        <!-- زر تحميل PDF -->
-        <button onclick="downloadPDF()">📄 تحميل PDF</button>
-    </div>
-</div>
+‏<div id="display-area">
+‏    <span class="close-btn" onclick="closeDisplay()">TERMINATE VIEW [ESC]</span>
+‏    <div id="content-body"></div>
+‏</div>
 
     <script>
         // --- إضافة تأثير صوت الـ Beep عند الضغط على أي زر ---
@@ -1235,23 +1176,68 @@ async function deleteSingleDrawing(drawingId) {
         }
 
         async function renderReports(c) {
-            const [repRes, chargeRes] = await Promise.all([ fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers }), fetch(`${SB_URL}/charges?select=*&order=id.desc`, { headers }) ]);
-            const reports = await repRes.json(); const charges = await chargeRes.json();
-            let h = `<h3>📄 أرشيف القضايا المكتملة</h3>`;
-            h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;"><input id="r_num" placeholder="رقم الملف المستندي"><input id="r_crim_id" placeholder="اسم المشتبه به"><input id="r_img" placeholder="مرفق مرئي (URL)"><div class="charges-dynamic-list">${charges.map(ch => `<div class="charge-check-item"><input type="checkbox" value="${ch.name}" class="charge-cb"><span>${ch.name}</span>${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>`:''}</div>`).join('')}</div><div style="display:flex; gap:5px; margin-bottom:15px;"><input id="new_charge_val" placeholder="إضافة تهمة جديدة..."><button onclick="addNewGlobalCharge()">إضافة</button></div><input id="r_time" placeholder="العقوبة"><textarea id="r_extra" placeholder="التفاصيل..."></textarea>` + generateRankSelectorHTML('rep-rank-cb') + `<button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button></div>`;
-            h += `<div class="universal-grid">`;
-            reports.forEach(r => {
-                if(canUserSeeItem(r.allowed_ranks)) {
-                    const authorPart = r.author || "SYSTEM";
-                    const hasPerm = checkOwnership(authorPart);
-                    h += `<div class="file-folder" style="padding-left:110px;" onclick="toggleFolder(this)"><div class="file-tab">FILE RE-${r.report_num}</div><img src="${r.img_url}" style="position:absolute; left:15px; top:40px; width:80px; height:100px; border:1px solid #555; background:#000;" onerror="this.src='https://via.placeholder.com/80x100'"><b style="color:#fff; font-size:15px; display:block;">FILE ID: ${r.report_num}</b><div class="folder-details"><b style="color:var(--red); font-size:14px;">المتهم: ${r.author_id}</b><div style="font-size:10px; color:var(--red); margin:5px 0;">التهم: ${r.status || 'None'}</div><div style="font-size:10px; color:#0f0; margin-bottom:5px;">العقوبة: ${r.place || 'لا يوجد'}</div><div style="font-size:11px; color:#999; margin-bottom:10px;">${r.content}</div><div class="stamp stamp-green" style="bottom:40px;">CLOSED</div><div style="font-size:9px; color:#555;">By: ${r.author}</div><div style="margin-top:10px;" onclick="event.stopPropagation()">
-                        ${hasPerm ? `<button class="del-btn" onclick="deleteItem('reports',${r.id}, '${authorPart}')">حذف</button>` : ''}
-                        ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}
-                    </div></div></div>`;
-                }
-            });
-            c.innerHTML = h + "</div>";
-        }
+  const [repRes, chargeRes] = await Promise.all([
+    fetch(`${SB_URL}/reports?select=*&order=id.desc`, { headers }),
+    fetch(`${SB_URL}/charges?select=*&order=id.desc`, { headers })
+  ]);
+
+  const reports = await repRes.json();
+  const charges = await chargeRes.json();
+
+  let h = `<h3>📄 أرشيف القضايا المكتملة</h3>`;
+  h += `<div style="background: rgba(20,0,0,0.3); padding: 20px; border: 1px solid #300; margin-bottom: 20px;">
+          <input id="r_num" placeholder="رقم الملف المستندي">
+          <input id="r_crim_id" placeholder="اسم المشتبه به">
+          <input id="r_img" placeholder="مرفق مرئي (URL)">
+          <div class="charges-dynamic-list">
+            ${charges.map(ch => `
+              <div class="charge-check-item">
+                <input type="checkbox" value="${ch.name}" class="charge-cb">
+                <span>${ch.name}</span>
+                ${isAdmin ? `<span class="del-charge-btn" onclick="deleteGlobalCharge(${ch.id})">[حذف]</span>`:''}
+              </div>`).join('')}
+          </div>
+          <div style="display:flex; gap:5px; margin-bottom:15px;">
+            <input id="new_charge_val" placeholder="إضافة تهمة جديدة...">
+            <button onclick="addNewGlobalCharge()">إضافة</button>
+          </div>
+          <input id="r_time" placeholder="العقوبة">
+          <textarea id="r_extra" placeholder="التفاصيل..."></textarea>
+          ${generateRankSelectorHTML('rep-rank-cb')}
+          <button class="action-btn" onclick="addRep()">${editingReportId ? 'تحديث التقرير' : 'حفظ التقرير'}</button>
+        </div>`;
+
+  h += `<div class="universal-grid">`;
+
+  reports.forEach(r => {
+    if (canUserSeeItem(r.allowed_ranks)) {
+      const authorPart = r.author || "SYSTEM";
+      const hasPerm = checkOwnership(authorPart);
+
+      h += `<div class="file-folder" style="padding-left:110px;" onclick="toggleFolder(this)">
+              <div class="file-tab">FILE RE-${r.report_num}</div>
+              <img src="${r.img_url}" style="position:absolute; left:15px; top:40px; width:80px; height:100px; border:1px solid #555; background:#000;" onerror="this.src='https://via.placeholder.com/80x100'">
+              <b style="color:#fff; font-size:15px; display:block;">FILE ID: ${r.report_num}</b>
+              <div class="folder-details">
+                <b style="color:var(--red); font-size:14px;">المتهم: ${r.author_id}</b>
+                <div style="font-size:10px; color:var(--red); margin:5px 0;">التهم: ${r.status || 'None'}</div>
+                <div style="font-size:10px; color:#0f0; margin-bottom:5px;">العقوبة: ${r.place || 'لا يوجد'}</div>
+                <div style="font-size:11px; color:#999; margin-bottom:10px;">${r.content}</div>
+                <div class="stamp stamp-green" style="bottom:40px;">CLOSED</div>
+                <div style="font-size:9px; color:#555;">By: ${r.author}</div>
+                <div style="margin-top:10px; display:flex; gap:5px;" onclick="event.stopPropagation()">
+                  ${hasPerm ? `<button class="del-btn" onclick="deleteItem('reports',${r.id}, '${authorPart}')">حذف</button>` : ''}
+                  ${hasPerm ? `<button class="edit-report-btn" onclick='prepareEditReport(${JSON.stringify(r)})'>تعديل</button>` : ''}
+                  <button class="pdf-btn" style="font-size:10px; padding:2px 6px;" onclick="downloadReportAsPDF(${r.id}, \`${r.content}\`, \`${authorPart}\`, \`${r.date_str}\`)">📄 PDF</button>
+                </div>
+              </div>
+            </div>`;
+    }
+  });
+
+  c.innerHTML = h + "</div>";
+}
+
 
         async function suspendAgent(agentName) {
             const reason = prompt("يرجى كتابة سبب الإيقاف عن العمل:"); if(!reason) return;
@@ -1396,7 +1382,16 @@ async function deleteSingleDrawing(drawingId) {
         .rs-access-granted { color: #00ff00 !important; text-shadow: 0 0 8px rgba(0,255,0,0.5); }
     </style>
 
-
+    <div id="rs-pro-loader">
+        <div class="rs-content">
+            <div class="rs-header"><h1 class="rs-logo-text">RED <span>STORM</span></h1></div>
+            <div class="rs-loader-wrapper">
+                <div class="rs-counter" id="pc-count">00%</div>
+                <div class="rs-progress-track"><div id="pc-bar" class="rs-progress-bar"></div></div>
+                <div id="pc-msg" class="rs-terminal-msg">INITIALIZING SECURE UPLINK...</div>
+            </div>
+        </div>
+    </div>
 
     <script>
         (function() {
@@ -1548,22 +1543,46 @@ async function deleteMember(id, gangId) {
 
     loadMembers(gangId);
 }
-  // دوال تعبئة البيانات وإنشاء PDF
-function generateReportMeta() {
-    document.getElementById('case-id').innerText = "12345"; // استبدل بالبيانات الحقيقية
-    document.getElementById('officer-name').innerText = currentUserName;
-    document.getElementById('officer-rank').innerText = currentUserRank;
-    document.getElementById('report-date').innerText = new Date().toLocaleDateString();
+
+ async function downloadReportAsPDF(id, text, author, date) {
+  text = decodeURIComponent(text);
+  author = decodeURIComponent(author);
+  date = decodeURIComponent(date);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const logoUrl = "https://cdn.discordapp.com/attachments/1156229090324529303/1485986660830416946/IMG_0320.png?ex=69c3dc6c&is=69c28aec&hm=df5d8dffe84e4c1b7e4049e18c5385a25d28da7cc42efec4914e6864c840330a&"; 
+  const logo = await loadImage(logoUrl);
+  doc.addImage(logo, "PNG", 10, 10, 40, 40);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("تقرير رسمي", 105, 20, { align: "center" });
+
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.text(`المحتوى: ${text}`, 20, 60, { maxWidth: 170 });
+  doc.text(`الكاتب: ${author}`, 20, 100);
+  doc.text(`التاريخ: ${date}`, 20, 115);
+
+  doc.save(`report_${id}.pdf`);
 }
 
-function downloadPDF() {
-    generateReportMeta(); // يملأ البيانات قبل الطباعة
-    const printContents = document.getElementById('report-content').innerHTML;
-    const originalContents = document.body.innerHTML;
-    document.body.innerHTML = printContents;
-    window.print();
-    document.body.innerHTML = originalContents;
-    location.reload(); // لإعادة تفعيل جميع وظائف الموقع
+function loadImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.src = url;
+  });
 }
 
   </script>
