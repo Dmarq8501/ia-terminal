@@ -2,15 +2,50 @@
 <html lang="ar" dir="rtl">
 <head>
 
+
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
+
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DETECTIVE HUB |  CASE EDITION - UNLOCKED</title>
     <style>
+.rs-header {
+  display: flex;
+  flex-direction: column;   /* يجعل الشعار فوق النص */
+  align-items: center;      /* يوسّط العناصر */
+  justify-content: center;
+}
+
+.rs-loading-logo {
+  width: 150px;        /* حجم مناسب للشعار */
+  max-width: 100%;     /* يتناسب مع أي شاشة */
+  height: auto;
+  margin-bottom: 8px; /* مسافة صغيرة بين الشعار والكلمة */
+}
+
+.rs-logo-text {
+  color: var(--red);
+  font-size: 28px;    /* حجم النص */
+  letter-spacing: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+
+
+‏#nav-grid {
+‏  position: relative;
+‏  background-image: url('https://cdn.discordapp.com/attachments/1156229090324529303/1486299935438540800/IMG_0362.png?ex=69c5002e&is=69c3aeae&hm=128cab6d9e68f23f9ea4550f0af7bb2473c5fc568a8aa61d68ac123f72e0326c&');   /* ضع رابط الشعار هنا */
+‏  background-repeat: no-repeat;        /* لا يتكرر */
+‏  background-position: center center;  /* وسط القوائم */
+‏  background-size: contain;            /* يتناسب مع أي شاشة */
+}
 
 
         /* [نفس التنسيقات الأصلية بدون تغيير] */
@@ -23,7 +58,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.15;
+            opacity: 5.15;
         }
 
         .scanline {
@@ -1377,16 +1412,23 @@ async function deleteSingleDrawing(drawingId) {
         .rs-access-granted { color: #00ff00 !important; text-shadow: 0 0 8px rgba(0,255,0,0.5); }
     </style>
 
-    <div id="rs-pro-loader">
-        <div class="rs-content">
-            <div class="rs-header"><h1 class="rs-logo-text">RED <span>STORM</span></h1></div>
-            <div class="rs-loader-wrapper">
-                <div class="rs-counter" id="pc-count">00%</div>
-                <div class="rs-progress-track"><div id="pc-bar" class="rs-progress-bar"></div></div>
-                <div id="pc-msg" class="rs-terminal-msg">INITIALIZING SECURE UPLINK...</div>
-            </div>
-        </div>
+<div id="rs-pro-loader">
+  <div class="rs-content">
+    <div class="rs-header">
+      <!-- الشعار فوق الكلمة -->
+      <img src="https://cdn.discordapp.com/attachments/1156229090324529303/1486299935438540800/IMG_0362.png?ex=69c5002e&is=69c3aeae&hm=128cab6d9e68f23f9ea4550f0af7bb2473c5fc568a8aa61d68ac123f72e0326c&" alt="Logo" class="rs-loading-logo">
+      <h1 class="rs-logo-text">RED <span>STORM</span></h1>
     </div>
+    <div class="rs-loader-wrapper">
+      <div class="rs-counter" id="pc-count">00%</div>
+      <div class="rs-progress-track">
+        <div id="pc-bar" class="rs-progress-bar"></div>
+      </div>
+      <div id="pc-msg" class="rs-terminal-msg">INITIALIZING SECURE UPLINK...</div>
+    </div>
+  </div>
+</div>
+
 
     <script>
         (function() {
@@ -1584,18 +1626,18 @@ box-shadow:0 0 40px rgba(0,0,0,0.7); z-index:9999;
 font-family:'Times New Roman', serif; line-height:1.9; color:#000; overflow:auto;">
 
   <!-- ختم أعلى يسار -->
-  <img src="https://cdn.discordapp.com/attachments/1156229090324529303/1486303691802673203/IMG_0364.png?ex=69c503ae&is=69c3b22e&hm=1b9865c35aab94f3ddaee7c507fc791237597a1aa1678a68b7bd48d723f914ca&" alt="الختم الرسمي"
+  <img src="https://cdn.discordapp.com/attachments/1156229090324529303/1486299935438540800/IMG_0362.png?ex=69c5002e&is=69c3aeae&hm=128cab6d9e68f23f9ea4550f0af7bb2473c5fc568a8aa61d68ac123f72e0326c&" alt="الختم الرسمي"
        style="position:absolute; top:15px; left:15px; width:100px; height:auto; opacity:0.9; z-index:10;">
 
   <!-- شعار كخلفية وسط التقرير -->
-  <img src="https://cdn.discordapp.com/attachments/1156229090324529303/1486303691802673203/IMG_0364.png?ex=69c503ae&is=69c3b22e&hm=1b9865c35aab94f3ddaee7c507fc791237597a1aa1678a68b7bd48d723f914ca&" 
+  <img src="https://cdn.discordapp.com/attachments/1156229090324529303/1486299935438540800/IMG_0362.png?ex=69c5002e&is=69c3aeae&hm=128cab6d9e68f23f9ea4550f0af7bb2473c5fc568a8aa61d68ac123f72e0326c&" 
        alt="الختم الخلفي"
        style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
               width:500px; height:auto; opacity:0.08; z-index:0;">
 
   <!-- رأس التقرير -->
   <div style="text-align:center; border-bottom:3px double #8B0000; padding-bottom:15px; margin-bottom:25px; position:relative; z-index:5;">
-    <h2 style="margin:0; font-size:22px; color:#000;">مكتب التحقيقات الجنائية</h2>
+    <h2 style="margin:0; font-size:22px; color:#000;">-مكتب التحقيقات الجنائية-</h2>
   </div>
 
   <!-- محتوى التقرير -->
@@ -1609,21 +1651,21 @@ font-family:'Times New Roman', serif; line-height:1.9; color:#000; overflow:auto
 
     <p><strong style="color:#8B0000;">رقم التقرير:</strong> <span id="report-id"></span></p>
 
-    <p><strong style="color:#8B0000;">أولاً: البيانات الشخصية للمتهم</strong></p>
+    <p><strong style="color:#8B0000;">اولاً - المعلومات الشخصية للمتهم:</strong></p>
     <div style="display:flex; align-items:center; gap:20px; margin:15px 0;">
       <img id="report-img" src="" alt="صورة المتهم" style="width:120px; height:140px; border:2px solid #8B0000; object-fit:cover; display:none;">
       <p style="margin:0;"><strong style="color:#8B0000;">الاسم:</strong> <span id="report-suspect" style="color:#1a2a4f; font-weight:bold;"></span></p>
     </div>
 
-    <p><strong style="color:#8B0000;">ثانياً: تفاصيل التهم الموجهة إليه</strong></p>
+    <p><strong style="color:#8B0000;">ثانياً - تفاصيل التهم الموجهه اليه:</strong></p>
     <p><strong style="color:#8B0000;">التهم:</strong> <span id="report-charges"></span></p>
 
-    <p><strong style="color:#8B0000;">ثالثاً: العقوبات المقرره ضده</strong></p>
+    <p><strong style="color:#8B0000;">ثالثاً - العقوبات المقررة ضده:</strong></p>
     <p><strong style="color:#8B0000;">العقوبة:</strong> <span id="report-punishment"></span></p>
     <p><strong style="color:#8B0000;">التفاصيل:</strong></p>
     <div id="report-content" style="margin:15px 0; padding:20px; border:1px solid #8B0000; background:#f9f9f9;"></div>
 
-    <p><strong style="color:#8B0000;">رابعاً: التوصيات</strong></p>
+    <p><strong style="color:#8B0000;">رابعاً - التوصيات:</strong></p>
     <p>نوصي باستكمال الإجراءات النظامية بحقه، واتخاذ ما يلزم وفق الأنظمة والقوانين المعمول بها، نظراً لخطورة الأفعال المرتكبة وتأثيرها على الأمن العام.</p>
 
     <p>نأمل الاطلاع والتوجيه بما ترونه مناسباً.</p>
